@@ -786,8 +786,12 @@ class Acromidia_Manager {
         
         if ( empty( $domain ) ) return rest_ensure_response( [ 'status' => 'active' ] );
         
-        // Limpar URL (remover http, https, wwww) para busca flexível
-        $domain = parse_url('http://' . preg_replace('#^https?://(www\.)?#', '', $domain), PHP_URL_HOST);
+        // Limpar URL vinda do $_SERVER['HTTP_HOST'] do cliente para busca flexível
+        $domain = strtolower( trim( $domain ) );
+        $domain = preg_replace( '#^https?://#', '', $domain );
+        $domain = preg_replace( '#^www\.#', '', $domain );
+        $domain = explode( '/', $domain )[0];
+        $domain = explode( ':', $domain )[0];
         
         $query = new \WP_Query([
             'post_type'      => 'acro_client',
