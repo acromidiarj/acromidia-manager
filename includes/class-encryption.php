@@ -48,17 +48,17 @@ class Acromidia_Encryption {
         }
 
         $key     = self::get_key();
-        $data    = base64_decode( $encrypted );
+        $data    = base64_decode( $encrypted, true );
         $iv_len  = openssl_cipher_iv_length( self::$cipher );
 
-        if ( strlen( $data ) <= $iv_len ) {
-            return '';
+        if ( $data === false || strlen( $data ) <= $iv_len ) {
+            return $encrypted; // Legacy Plain Text fallback
         }
 
         $iv         = substr( $data, 0, $iv_len );
         $ciphertext = substr( $data, $iv_len );
         $decrypted  = openssl_decrypt( $ciphertext, self::$cipher, $key, OPENSSL_RAW_DATA, $iv );
 
-        return $decrypted !== false ? $decrypted : '';
+        return $decrypted !== false ? $decrypted : $encrypted;
     }
 }
