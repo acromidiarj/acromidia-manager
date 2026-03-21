@@ -107,7 +107,9 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
 
       <div class="flex items-center gap-5">
         <a :href="settingsUrl" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all"><i data-lucide="settings" class="w-5 h-5"></i></a>
-        <button @click="openCreateModal" class="btn-primary">Novo Cliente</button>
+        <button v-if="asaasOk" @click="importAsaas" :disabled="importing" class="btn-primary flex items-center gap-2" :class="{'opacity-70 cursor-wait': importing}">
+            <i data-lucide="cloud-download" class="w-4 h-4" :class="{'animate-pulse': importing}"></i> {{ importing ? 'Sincronizando...' : 'Importar Asaas' }}
+        </button>
       </div>
     </div>
   </header>
@@ -243,11 +245,8 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
             <div class="flex flex-col gap-5">
                 <div class="flex flex-wrap items-center gap-3">
                     <h2 class="text-4xl font-black text-slate-900 tracking-tighter">Monitoramento</h2>
-                    <button v-if="asaasOk" @click="importAsaas" :disabled="importing" class="btn-primary !bg-sky-500 hover:!bg-sky-600 !py-2 !px-4 !text-[11px] !shadow-lg ml-2">
-                        <i data-lucide="cloud-download" class="w-4 h-4" :class="{'animate-pulse': importing}"></i> {{ importing ? 'Buscando...' : 'Importar Asaas' }}
-                    </button>
                     
-                    <button v-if="waOk && overdueCount > 0" @click="massBillOverdue" :disabled="massBilling" class="btn-primary !bg-rose-500 hover:!bg-rose-600 !py-2 !px-4 !text-[11px] !shadow-lg shadow-rose-200">
+                    <button v-if="waOk && overdueCount > 0" @click="massBillOverdue" :disabled="massBilling" class="btn-primary !bg-rose-500 hover:!bg-rose-600 !py-2 !px-4 !text-[11px] !shadow-lg shadow-rose-200 ml-2">
                         <i data-lucide="send" class="w-4 h-4" :class="{'animate-pulse': massBilling}"></i> {{ massBilling ? 'Enviando Avisos...' : 'Cobrar Inadimplentes ('+overdueCount+')' }}
                     </button>
                 </div>
@@ -328,10 +327,10 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
         <div class="relative bg-white w-full max-w-xl rounded-[40px] modal-card overflow-hidden">
             <header class="px-12 pt-12 pb-6">
                 <div class="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-100 mb-8">
-                    <i :data-lucide="editTarget ? 'pencil' : 'user-plus'" class="w-8 h-8"></i>
+                    <i data-lucide="pencil" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-4xl font-black text-slate-900 tracking-tighter">{{ editTarget ? 'Editar Registro' : 'Onboarding' }}</h3>
-                <p class="text-slate-500 font-bold mt-2">{{ editTarget ? 'Atualize as informações do contrato.' : 'Dê os primeiros passos com seu novo cliente.' }}</p>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tighter">Editar Registro</h3>
+                <p class="text-slate-500 font-bold mt-2">Atualize as informações do contrato e Domínio do Site.</p>
             </header>
             
             <form @submit.prevent="saveClient" class="px-12 pb-12 space-y-8">
@@ -682,12 +681,6 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                   }
               }
           });
-      };
-
-      const openCreateModal = () => {
-        editTarget.value = null;
-        form.value = { name: '', phone: '', mrr: null, site_url: '' };
-        showModal.value = true;
       };
 
       const openEditModal = (c) => {
