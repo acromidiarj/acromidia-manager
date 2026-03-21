@@ -524,6 +524,10 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
         return list.filter(c => c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q)));
       });
 
+      watch([filteredClients, view], () => {
+        nextTick(lucide.createIcons);
+      });
+
       const totalMRR = computed(() => clients.value.reduce((a,c) => a + parseFloat(c.mrr||0), 0).toLocaleString('pt-BR',{minimumFractionDigits:2}));
       const activeCount = computed(() => clients.value.filter(c => c.status==='ativo').length);
       const overdueCount = computed(() => clients.value.filter(c => c.status==='inadimplente').length);
