@@ -192,26 +192,81 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
             <p class="text-slate-500 font-medium mt-1">Crescimento projetado de MRR e auditoria de comunicação automatizada (WhatsApp).</p>
         </header>
         
+        <!-- INTELIGÊNCIA GERENCIAL -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <!-- MRR Saudável -->
+            <div class="card-glass p-6 border-b-4 border-emerald-500 bg-gradient-to-br from-white to-emerald-50">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[10px] font-black uppercase text-emerald-600 tracking-widest">MRR Saudável</span>
+                    <i data-lucide="trending-up" class="w-5 h-5 text-emerald-500"></i>
+                </div>
+                <h3 class="text-3xl font-black text-slate-900 tracking-tighter">R$ {{ formatMoney(mrrAtivo) }}</h3>
+                <p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-widest leading-tight">Arrecadação de<br>clientes em dia</p>
+            </div>
+
+            <!-- MRR em Risco -->
+            <div class="card-glass p-6 border-b-4 border-rose-500 bg-gradient-to-br from-white to-rose-50">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[10px] font-black uppercase text-rose-600 tracking-widest">MRR em Risco</span>
+                    <i data-lucide="trending-down" class="w-5 h-5 text-rose-500"></i>
+                </div>
+                <h3 class="text-3xl font-black text-slate-900 tracking-tighter">R$ {{ formatMoney(mrrRisco) }}</h3>
+                <p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-widest leading-tight">Valor retido em<br>inadimplência</p>
+            </div>
+
+            <!-- Funil de Vendas -->
+            <div class="card-glass p-6 border-b-4 border-sky-500 md:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[10px] font-black uppercase text-sky-600 tracking-widest">Saúde do Funil</span>
+                    <i data-lucide="filter" class="w-5 h-5 text-sky-500"></i>
+                </div>
+                <div class="flex items-center justify-between mt-6 px-4">
+                    <div class="text-center">
+                        <p class="text-4xl font-black text-slate-900">{{ pipelineBreakdown.prospect || 0 }}</p>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Leads (API)</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                    <div class="text-center">
+                        <p class="text-4xl font-black text-slate-900">{{ pipelineBreakdown.onboarding || 0 }}</p>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Em Setup</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 hidden md:block"></i>
+                    <div class="text-center hidden md:block">
+                        <p class="text-4xl font-black text-slate-900 text-emerald-600">{{ pipelineBreakdown.ativo || 0 }}</p>
+                        <p class="text-[9px] text-emerald-600/60 font-black uppercase tracking-widest mt-1">Ativos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- BREAKDOWN DE PRODUTOS -->
+            <div class="card-glass p-8 bg-slate-50/50">
+                <h3 class="input-label mb-6 flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-indigo-500"></i> Mix de Contratos</h3>
+                <div v-if="productBreakdown.length === 0" class="text-center py-10 text-slate-400 text-xs font-bold uppercase tracking-widest">Nenhum produto em base.</div>
+                <div class="space-y-4">
+                    <div v-for="pb in productBreakdown.slice(0, 5)" :key="pb.name" class="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500"></div>
+                        <div class="flex flex-col pl-2">
+                            <span class="font-black text-slate-900 text-sm truncate max-w-[120px]" :title="pb.name">{{ pb.name }}</span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{{ pb.count }} Contrato(s)</span>
+                        </div>
+                        <span class="font-black text-indigo-600 text-sm">R$ {{ formatMoney(pb.mrr) }}</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Gráfico de MRR Projetado -->
             <div class="lg:col-span-2 card-glass p-8">
-                <h3 class="input-label mb-6">Crescimento Projetado (MRR) - 6 Meses</h3>
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="input-label !mb-0">Crescimento Projetado (MRR) - 6 Meses</h3>
+                    <div class="text-[10px] font-black uppercase tracking-[0.2em] bg-sky-50 text-sky-600 px-3 py-1.5 rounded-lg border border-sky-100 flex items-center gap-2 shadow-sm">
+                        <i data-lucide="bar-chart" class="w-3.5 h-3.5"></i> Meta: R$ {{ formatMoney(metrics.projected_mrr) }}
+                    </div>
+                </div>
                 <div class="h-[300px] w-full flex items-center justify-center relative">
                     <canvas id="mrrChart" class="absolute inset-0"></canvas>
                     <div v-if="loadingReports" class="text-indigo-600"><i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i></div>
-                </div>
-            </div>
-            
-            <!-- Resumo Rápido -->
-            <div class="flex flex-col gap-6">
-                <div class="card-glass p-8 border-b-4 border-b-sky-500 bg-gradient-to-br from-white to-sky-50">
-                    <span class="input-label text-sky-600">MRR Projetado Atual</span>
-                    <p class="text-4xl font-black text-slate-900 tracking-tighter mt-2">R$ {{ formatMoney(metrics.projected_mrr) }}</p>
-                </div>
-                <div class="card-glass p-8 border-b-4 border-b-rose-500 bg-gradient-to-br from-white to-rose-50 flex-1">
-                    <span class="input-label text-rose-600">Alerta de Churn e Risco</span>
-                    <p class="text-4xl font-black text-slate-900 tracking-tighter mt-2">{{ metrics.churn_risk }} clientes</p>
-                    <p class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest leading-relaxed">Em estado de inadimplência, com risco alto de cancelamento definitivo.</p>
                 </div>
             </div>
         </div>
@@ -285,7 +340,10 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                         <td class="px-8 py-6 relative">
                             <div v-if="c.status==='inadimplente'" class="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]"></div>
                             <p class="font-black text-slate-900">{{ c.name }}</p>
-                            <p class="text-xs text-slate-400 font-bold mt-1 uppercase">{{ formatPhone(c.phone) }}</p>
+                            <div class="flex flex-col gap-1.5 mt-1.5">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1.5"><i data-lucide="phone" class="w-3 h-3 text-slate-300"></i>{{ formatPhone(c.phone) || 'S/ TELEFONE' }}</p>
+                                <p v-if="c.product" class="text-[9px] uppercase tracking-widest text-indigo-500 font-black bg-indigo-50 border border-indigo-100 py-0.5 px-2 rounded-lg w-max"><i data-lucide="tag" class="w-2.5 h-2.5 inline-block mr-1 align-text-bottom"></i>{{ c.product }}</p>
+                            </div>
                         </td>
                         <td class="px-8 py-6">
                             <span :class="c.status==='ativo'?'badge-success':'badge-warning'" class="badge">{{ c.status==='ativo'?'ATUALIZADO':'EM ATRASO' }}</span>
@@ -322,25 +380,34 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
 
     <!-- ══ CRM PIPELINE ══ -->
     <div v-if="view==='crm'" class="h-full flex flex-col pb-10">
-        <header class="mb-8 flex items-end justify-between">
+        <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <h2 class="text-4xl font-black text-slate-900 tracking-tighter">Sales & Success Pipeline</h2>
-                <p class="text-slate-500 font-medium mt-1">Acompanhe a implantação, ativação e retenção dos seus contratos de forma 100% visual.</p>
+                <div class="flex bg-slate-100 p-1.5 rounded-2xl w-max mt-4">
+                    <button @click="crmTab='sales'" :class="crmTab==='sales'?'bg-white shadow-sm text-slate-900':'text-slate-500'" class="px-6 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest">Aquisição e Setup</button>
+                    <button @click="crmTab='success'" :class="crmTab==='success'?'bg-white shadow-sm text-slate-900':'text-slate-500'" class="px-6 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest">Retenção e Risco</button>
+                </div>
             </div>
-            <div class="flex gap-4">
-                <div class="text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-100 py-2 px-4 rounded-xl flex items-center gap-2"><i data-lucide="info" class="w-3.5 h-3.5 border-2 rounded-full"></i> Movimentação de Risco Mapeada pelo Asaas</div>
+            
+            <div class="flex items-center gap-4">
+                <div class="text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-100 py-2 px-4 rounded-xl flex items-center gap-2 hidden lg:flex"><i data-lucide="zap" class="w-3 h-3 text-emerald-500"></i> Smart Engine Asaas</div>
+                <div class="relative w-full md:w-64">
+                    <i data-lucide="search" class="input-icon"></i>
+                    <input v-model="search" type="text" placeholder="Filtrar CRM..." class="modern-input !text-sm !h-12 !rounded-xl">
+                </div>
+                <button v-if="crmTab==='sales'" @click="openLeadModal" class="btn-primary !h-12 !px-5 !rounded-xl shadow-md"><i data-lucide="user-plus" class="w-4 h-4"></i> Lead Manual</button>
             </div>
         </header>
         
         <div class="flex gap-6 overflow-x-auto pb-8 items-start snap-x" style="min-height: 550px;">
-            <div v-for="column in crmColumns" :key="column.id" class="flex flex-col bg-slate-50/80 rounded-3xl w-[320px] shrink-0 p-5 border shadow-inner snap-center" :class="column.id === 'risk' ? 'border-rose-100' : 'border-slate-200'" @dragover.prevent @drop="onDrop($event, column.id)">
+            <div v-for="column in crmColumns" :key="column.id" class="flex flex-col bg-slate-50/80 rounded-3xl w-[320px] shrink-0 p-5 border shadow-inner snap-center" :class="column.id === 'risk' ? 'border-rose-100 bg-rose-50/30' : 'border-slate-200'" @dragover.prevent @dragenter.prevent @drop="onDrop($event, column.id)">
                 <h3 class="font-black text-slate-800 text-sm mb-5 flex items-center justify-between">
                     <span class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full shadow-sm" :class="column.color"></div> {{ column.label }}</span>
-                    <span class="bg-white px-2.5 py-1 rounded-lg text-[10px] shadow-sm border border-slate-100 text-slate-500">{{ clients.filter(c => getPipelineStage(c) === column.id).length }}</span>
+                    <span class="bg-white px-2.5 py-1 rounded-lg text-[10px] shadow-sm border border-slate-100 text-slate-500">{{ crmClients.filter(c => getPipelineStage(c) === column.id).length }}</span>
                 </h3>
                 
                 <div class="flex flex-col gap-4 min-h-[150px]">
-                    <div v-for="c in clients.filter(c => getPipelineStage(c) === column.id)" :key="c.id" 
+                    <div v-for="c in crmClients.filter(c => getPipelineStage(c) === column.id)" :key="c.id" 
                          class="card-glass p-5 bg-white transition-all shadow-sm group relative" 
                          :class="[getPipelineStage(c) === 'risk' ? 'border-rose-300 shadow-rose-100 bg-rose-50/50' : 'hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-100/50', (getPipelineStage(c) === 'risk' || getPipelineStage(c) === 'lost') ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing']"
                          :draggable="getPipelineStage(c) !== 'risk' && getPipelineStage(c) !== 'lost'" 
@@ -350,22 +417,28 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                             <div class="w-10 h-10 rounded-2xl text-white flex items-center justify-center font-black text-lg shadow-md shrink-0 transition-transform group-hover:scale-105" :class="column.color">{{ c.name.charAt(0) }}</div>
                             <div class="flex-1 min-w-0">
                                 <p class="font-black text-sm text-slate-900 truncate leading-tight mt-0.5">{{ c.name }}</p>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate mt-1">{{ c.site_url || 'N/A' }}</p>
+                                <p v-if="c.product" class="text-[8px] uppercase tracking-widest text-indigo-500 font-black bg-indigo-50 border border-indigo-100 py-0.5 px-1.5 rounded-md mt-1 mb-1 w-max max-w-[130px] truncate"><i data-lucide="tag" class="w-2 h-2 inline-block mr-0.5 align-text-bottom"></i>{{ c.product }}</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate mt-0.5 flex items-center gap-1" v-if="c.site_url"><i data-lucide="globe" class="w-2.5 h-2.5"></i>{{ c.site_url }}</p>
                             </div>
                         </div>
                         
                         <div class="flex items-center justify-between border-t border-slate-100 pt-3">
                             <span class="text-xs font-black" :class="getPipelineStage(c) === 'risk' ? 'text-rose-600' : 'text-slate-900'">R$ {{ formatMoney(c.mrr) }}</span>
                             <div class="flex gap-1.5 items-center">
+                                <button v-if="getPipelineStage(c) === 'onboarding' || getPipelineStage(c) === 'ativo'" @click.prevent="moveStageByArrow(c, -1)" class="p-1.5 bg-slate-50 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-[10px] transition-colors" title="Voltar Etapa"><i data-lucide="chevron-left" class="w-3.5 h-3.5"></i></button>
+                                
                                 <span v-if="c.status==='inadimplente'" class="text-[9px] uppercase tracking-widest bg-rose-600 text-white px-2 py-1 rounded-[8px] font-black flex items-center gap-1 shadow-md shadow-rose-200" title="Atrasado no Asaas"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Fatura</span>
                                 <span v-if="c.site_status==='blocked'" class="text-[9px] uppercase tracking-widest bg-slate-900 text-white px-2 py-1 rounded-[8px] font-black flex items-center gap-1 shadow-md" title="Site Offline"><i data-lucide="lock" class="w-3 h-3"></i> Trancado</span>
                                 <button v-if="getPipelineStage(c) !== 'risk' && getPipelineStage(c) !== 'lost'" @click.prevent="openEditModal(c)" class="p-1.5 bg-slate-50 hover:bg-slate-200 text-slate-400 hover:text-indigo-600 rounded-[10px] transition-colors" title="Cadastrar Site"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                                <button v-if="getPipelineStage(c) === 'risk'" @click="sendWhatsApp($event, c, '15_days_after')" class="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-[10px] transition-colors flex items-center shadow-md"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i></button>
+                                <button v-if="getPipelineStage(c) === 'risk'" @click="sendWhatsApp($event, c, '15_days_after')" class="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-[10px] transition-colors flex items-center shadow-md" title="Mandar Cobrança Nativa"><i data-lucide="send" class="w-3.5 h-3.5"></i></button>
+                                <a :href="getWaLink(c.phone)" target="_blank" v-if="c.phone" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-[10px] transition-colors shadow-sm" title="Conversar no WhatsApp"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i></a>
+                                
+                                <button v-if="getPipelineStage(c) === 'prospect' || getPipelineStage(c) === 'onboarding'" @click.prevent="moveStageByArrow(c, 1)" class="p-1.5 bg-slate-50 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-[10px] transition-colors" title="Avançar Etapa"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
                             </div>
                         </div>
                     </div>
                     
-                    <div v-if="!clients.filter(c => getPipelineStage(c) === column.id).length" class="h-24 border-2 border-dashed border-slate-200 bg-white/50 rounded-2xl flex items-center justify-center text-slate-400 text-[10px] font-black uppercase tracking-widest transition-colors mb-auto">
+                    <div v-if="!crmClients.filter(c => getPipelineStage(c) === column.id).length" class="h-24 border-2 border-dashed border-slate-200 bg-white/50 rounded-2xl flex items-center justify-center text-slate-400 text-[10px] font-black uppercase tracking-widest transition-colors mb-auto">
                         Arrastar Card
                     </div>
                 </div>
@@ -381,10 +454,10 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
         <div class="relative bg-white w-full max-w-xl rounded-[40px] modal-card overflow-hidden">
             <header class="px-12 pt-12 pb-6">
                 <div class="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-100 mb-8">
-                    <i data-lucide="pencil" class="w-8 h-8"></i>
+                    <i :data-lucide="editTarget ? 'pencil' : 'user-plus'" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-4xl font-black text-slate-900 tracking-tighter">Editar Registro</h3>
-                <p class="text-slate-500 font-bold mt-2">Atualize as informações do contrato e Domínio do Site.</p>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tighter">{{ editTarget ? 'Editar Registro' : 'Novo Lead' }}</h3>
+                <p class="text-slate-500 font-bold mt-2">{{ editTarget ? 'Atualize as informações do contrato e Domínio do Site.' : 'Cadastre um prospecto manual para acompanhamento.' }}</p>
             </header>
             
             <form @submit.prevent="saveClient" class="px-12 pb-12 space-y-8">
@@ -401,7 +474,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                             <label class="input-label">Domínio Oficial do Cliente</label>
                             <div class="relative">
                                 <i data-lucide="globe" class="input-icon"></i>
-                                <input v-model="form.site_url" type="text" class="modern-input" placeholder="ex: cliente.com.br">
+                                <input v-model="form.site_url" type="text" class="modern-input" placeholder="ex: cliente.com.br" :disabled="!editTarget" :class="{'opacity-50 cursor-not-allowed': !editTarget}">
                             </div>
                         </div>
                     </div>
@@ -415,10 +488,29 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                             </div>
                         </div>
                         <div>
-                            <label class="input-label">Valor do Ciclo (MRR)</label>
+                            <label class="input-label">Valor Estimado (MRR)</label>
                             <div class="relative">
                                 <div class="input-icon font-black text-[12px] text-slate-400">R$</div>
-                                <input :value="displayMRR" @input="handleMRRInput" type="text" class="modern-input" placeholder="R$ 0,00" required>
+                                <input :value="displayMRR" @input="handleMRRInput" type="text" class="modern-input" placeholder="R$ 0,00" :disabled="!editTarget" :class="{'opacity-50 cursor-not-allowed': !editTarget}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1">
+                        <div>
+                            <label class="input-label">Serviço / Produto Adquirido (Opcional)</label>
+                            <div class="relative">
+                                <i data-lucide="tag" class="input-icon"></i>
+                                <input v-model="form.product" type="text" list="productList" class="modern-input !text-sm" placeholder="Ex: Site Institucional, Landing Page, Tráfego Pago...">
+                                <datalist id="productList">
+                                    <option value="Site Institucional">Site Institucional</option>
+                                    <option value="Landing Page">Landing Page</option>
+                                    <option value="Loja Virtual">Loja Virtual</option>
+                                    <option value="Tráfego Pago">Tráfego Pago</option>
+                                    <option value="Social Media">Social Media</option>
+                                    <option value="Identidade Visual">Identidade Visual</option>
+                                    <option value="Consultoria">Consultoria</option>
+                                </datalist>
                             </div>
                         </div>
                     </div>
@@ -737,9 +829,15 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
           });
       };
 
+      const openLeadModal = () => {
+        editTarget.value = null;
+        form.value = { name: '', phone: '', mrr: null, site_url: '', product: '' };
+        showModal.value = true;
+      };
+
       const openEditModal = (c) => {
         editTarget.value = c;
-        form.value = { name: c.name, phone: c.phone || "", mrr: parseFloat(c.mrr || 0), site_url: c.site_url || "" };
+        form.value = { name: c.name, phone: c.phone || "", mrr: parseFloat(c.mrr || 0), site_url: c.site_url || "", product: c.product || "" };
         showModal.value = true;
       };
 
@@ -747,7 +845,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
         saving.value = true;
         const isUpdate = !!editTarget.value;
         const method = isUpdate ? 'PUT' : 'POST';
-        const path = isUpdate ? `/clients/${editTarget.value.id}` : '/clients';
+        const path = isUpdate ? `/clients/${editTarget.value.id}` : '/leads';
 
         try {
           const r = await fetch('<?php echo $rest_url; ?>' + path, {
@@ -763,7 +861,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
             } else {
                 clients.value.push(d);             }
             showModal.value = false; 
-            form.value = { name:'', phone:'', mrr:null, site_url:'' }; 
+            form.value = { name:'', phone:'', mrr:null, site_url:'', product:'' }; 
           }
         } finally {
           saving.value = false;
@@ -856,13 +954,24 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
       };
 
       // ── CRM PIPELINE LOGIC ──
-      const crmColumns = ref([
-          { id: 'prospect', label: 'Prospecção (Pre-Setup)', color: 'bg-slate-400' },
-          { id: 'onboarding', label: 'Onboarding (Produção)', color: 'bg-sky-500' },
-          { id: 'ativo', label: 'Cliente Ativo (Saudável)', color: 'bg-emerald-500' },
-          { id: 'risk', label: 'Risco de Churn (Inadimplente)', color: 'bg-rose-500' },
-          { id: 'lost', label: 'Inativo / Bloqueado', color: 'bg-slate-800' }
-      ]);
+      const crmTab = ref('sales');
+      const allCrmColumns = [
+          { id: 'prospect', label: 'Prospecção (API)', color: 'bg-slate-400', group: 'sales' },
+          { id: 'onboarding', label: 'Implantação (Setup)', color: 'bg-sky-500', group: 'sales' },
+          { id: 'ativo', label: 'Ativo (Saudável)', color: 'bg-emerald-500', group: 'success' },
+          { id: 'risk', label: 'Risco de Churn (Inadimplente)', color: 'bg-rose-500', group: 'success' },
+          { id: 'lost', label: 'Inativo / Block', color: 'bg-slate-800', group: 'success' }
+      ];
+      
+      const crmColumns = computed(() => {
+          return allCrmColumns.filter(c => c.group === crmTab.value);
+      });
+      
+      const crmClients = computed(() => {
+          if (!search.value) return clients.value;
+          const q = search.value.toLowerCase();
+          return clients.value.filter(c => c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q)));
+      });
 
       const getPipelineStage = (c) => {
           if (c.site_status === 'blocked') return 'lost';
@@ -909,13 +1018,79 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
           }
       };
 
+      const moveStageByArrow = async (client, direction) => {
+          const arr = ['prospect', 'onboarding', 'ativo'];
+          const currentStage = getPipelineStage(client);
+          const currentIndex = arr.indexOf(currentStage);
+
+          if (currentIndex === -1) return; // Risco ou Lost nao podem ser movidos manualmente
+          
+          const newIndex = currentIndex + direction;
+          if (newIndex < 0 || newIndex >= arr.length) return;
+          
+          const targetStage = arr[newIndex];
+          const oldStage = client.pipeline_stage;
+          
+          client.pipeline_stage = targetStage;
+          nextTick(lucide.createIcons);
+          
+          try {
+              const res = await fetch(`<?php echo $rest_url; ?>/clients/${client.id}`, {
+                  method: 'PUT',
+                  headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>', 'Content-Type': 'application/json'},
+                  body: JSON.stringify({ pipeline_stage: targetStage })
+              });
+              if(!res.ok) throw new Error("Falha ao transitar card via setas");
+          } catch(err) {
+              console.error(err);
+              client.pipeline_stage = oldStage; // Revert
+              alert("Houve um erro técnico. O card foi recuado.");
+              nextTick(lucide.createIcons);
+          }
+      };
+
+      const mrrAtivo = computed(() => {
+          return clients.value.filter(c => c.status === 'ativo').reduce((acc, c) => acc + parseFloat(c.mrr || 0), 0);
+      });
+      
+      const mrrRisco = computed(() => {
+          return clients.value.filter(c => c.status === 'inadimplente').reduce((acc, c) => acc + parseFloat(c.mrr || 0), 0);
+      });
+      
+      const pipelineBreakdown = computed(() => {
+          const tally = { 'prospect': 0, 'onboarding': 0, 'ativo': 0, 'risk': 0, 'lost': 0 };
+          clients.value.forEach(c => {
+              const st = getPipelineStage(c);
+              if(tally[st] !== undefined) tally[st]++;
+          });
+          return tally;
+      });
+      
+      const productBreakdown = computed(() => {
+          const tally = {};
+          clients.value.filter(c => getPipelineStage(c) !== 'lost' && getPipelineStage(c) !== 'risk').forEach(c => {
+              const p = (c.product && c.product.trim() !== '') ? c.product.trim() : 'Não Etiquetado';
+              if (!tally[p]) tally[p] = { count: 0, mrr: 0 };
+              tally[p].count += 1;
+              tally[p].mrr += parseFloat(c.mrr || 0);
+          });
+          return Object.keys(tally).map(k => ({ name: k, count: tally[k].count, mrr: tally[k].mrr })).sort((a,b) => b.mrr - a.mrr);
+      });
+
+      const getWaLink = (phone) => {
+          if (!phone) return '#';
+          let s = phone.replace(/\D/g,'');
+          if (s.length === 10 || s.length === 11) s = '55' + s;
+          return `https://wa.me/${s}`;
+      };
+
       onMounted(() => {
         fetchClients().then(() => {
             syncOverduesSilently();
         });
         fetchDashboardStats();
       });
-      watch([view, showModal, showInvoicesModal, deleteTarget, filterStatus, syncingStatus], () => {
+      watch([view, showModal, showInvoicesModal, deleteTarget, filterStatus, syncingStatus, crmTab, filteredClients, crmClients], () => {
           if(view.value === 'reports') {
               if(logs.value.length === 0 && !loadingReports.value) fetchLogsAndMetrics();
               else nextTick(renderChart);
@@ -923,7 +1098,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
           nextTick(lucide.createIcons);
       });
 
-      return { view, clients, loading, search, filterStatus, showModal, showInvoicesModal, invoices, loadingInvoices, asaasBalance, loadingBalance, importing, massBilling, syncingStatus, saving, logs, loadingLogs, metrics, loadingReports, deleteTarget, editTarget, asaasOk, waOk, settingsUrl, form, filteredClients, totalMRR, activeCount, overdueCount, fetchClients, fetchDashboardStats, fetchLogsAndMetrics, importAsaas, massBillOverdue, syncOverduesSilently, saveClient, executeDelete, formatMoney, sendWhatsApp, toggleBlock, syncAsaas, openInvoicesModal, displayMRR, handleMRRInput, displayPhone, handlePhoneInput, formatPhone, openEditModal, crmColumns, getPipelineStage, onDragStart, onDrop };
+      return { view, clients, loading, search, filterStatus, showModal, showInvoicesModal, invoices, loadingInvoices, asaasBalance, loadingBalance, importing, massBilling, syncingStatus, saving, logs, loadingLogs, metrics, loadingReports, deleteTarget, editTarget, asaasOk, waOk, settingsUrl, form, filteredClients, crmClients, totalMRR, activeCount, overdueCount, fetchClients, fetchDashboardStats, fetchLogsAndMetrics, importAsaas, massBillOverdue, syncOverduesSilently, saveClient, executeDelete, formatMoney, sendWhatsApp, toggleBlock, syncAsaas, openInvoicesModal, displayMRR, handleMRRInput, displayPhone, handlePhoneInput, formatPhone, openEditModal, openLeadModal, crmTab, crmColumns, getPipelineStage, onDragStart, onDrop, getWaLink, moveStageByArrow, mrrAtivo, mrrRisco, pipelineBreakdown, productBreakdown };
     }
   }).mount('#acro-app');
 })();

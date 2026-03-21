@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Acromidia Manager
  * Description: Sistema completo de gestão de assinaturas, integração Asaas e notificações WhatsApp.
- * Version: 2.0.0
+ * Version: 2.0.1
  * Author: Especialista IA
  * Text Domain: acromidia-manager
  */
@@ -144,6 +144,13 @@ class Acromidia_Manager {
         register_rest_route( 'acromidia/v1', '/clients/(?P<id>\d+)', [
             'methods'             => 'PUT',
             'callback'            => [ $this, 'update_client' ],
+            'permission_callback' => $admin_perm,
+        ] );
+
+        // POST — criar lead manual (CRM prospect sem Asaas)
+        register_rest_route( 'acromidia/v1', '/leads', [
+            'methods'             => 'POST',
+            'callback'            => [ $this, 'create_lead' ],
             'permission_callback' => $admin_perm,
         ] );
 
@@ -315,6 +322,40 @@ class Acromidia_Manager {
     }
 
     /**
+     * POST /leads — Cria um novo prospecto (Lead) no CRM WP sem acionar o Asaas.
+     */
+    public function create_lead( \WP_REST_Request $request ) {
+        $params = $request->get_json_params();
+
+        $name  = sanitize_text_field( $params['name'] ?? '' );
+        $phone = sanitize_text_field( $params['phone'] ?? '' );
+
+        if ( empty( $name ) ) {
+            return new \WP_REST_Response( [ 'error' => 'Nome é obrigatório' ], 400 );
+        }
+
+        $post_id = wp_insert_post( [
+            'post_type'   => 'acro_client',
+            'post_title'  => $name,
+            'post_status' => 'publish',
+        ] );
+
+        if ( is_wp_error( $post_id ) ) {
+            return new \WP_REST_Response( [ 'error' => 'Erro ao criar lead' ], 500 );
+        }
+
+        update_post_meta( $post_id, '_acro_phone', $phone );
+        update_post_meta( $post_id, '_acro_mrr', 0 );
+        update_post_meta( $post_id, '_acro_site_url', '' );
+        update_post_meta( $post_id, '_acro_status', 'ativo' );
+        update_post_meta( $post_id, '_acro_pipeline_stage', 'prospect' );
+        update_post_meta( $post_id, '_acro_product', sanitize_text_field( $params['product'] ?? '' ) );
+        
+        $client_post = get_post( $post_id );
+        return rest_ensure_response( $this->format_client( $client_post ) );
+    }
+
+    /**
      * PUT /clients/{id} — Atualiza um cliente existente.
      */
     public function update_client( \WP_REST_Request $request ) {
@@ -336,13 +377,14 @@ class Acromidia_Manager {
 
         // Atualizar meta
         $meta_map = [
-            'cpf_cnpj' => '_acro_cpf_cnpj',
-            'email'    => '_acro_email',
-            'phone'    => '_acro_phone',
+            'cpf_cnpj'       => '_acro_cpf_cnpj',
+            'email'          => '_acro_email',
+            'phone'          => '_acro_phone',
             'mrr'            => '_acro_mrr',
             'site_url'       => '_acro_site_url',
             'status'         => '_acro_status',
             'pipeline_stage' => '_acro_pipeline_stage',
+            'product'        => '_acro_product',
         ];
 
         foreach ( $meta_map as $param_key => $meta_key ) {
@@ -849,6 +891,7 @@ class Acromidia_Manager {
             'status'         => get_post_meta( $post->ID, '_acro_status', true ) ?: 'ativo',
             'site_status'    => get_post_meta( $post->ID, '_acro_site_status', true ) ?: 'active',
             'pipeline_stage' => get_post_meta( $post->ID, '_acro_pipeline_stage', true ) ?: 'onboarding',
+            'product'        => get_post_meta( $post->ID, '_acro_product', true ) ?: '',
         ];
     }
 }
