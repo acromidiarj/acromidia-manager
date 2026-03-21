@@ -276,14 +276,13 @@ class Acromidia_Settings {
                         <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('client-snippet').innerText); alert('Copiado para a área de transferência!');" class="p-4 bg-white hover:bg-indigo-50 transition-colors rounded-xl text-indigo-600 flex items-center gap-3 text-[11px] font-black uppercase tracking-widest border border-indigo-200 shadow-sm"><i data-lucide="copy" class="w-4 h-4"></i> Copiar Código</button>
                     </div>
                     <div class="p-10 bg-[#0f172a] relative">
-                        <pre id="client-snippet" class="text-[13px] text-emerald-400 font-mono overflow-x-auto m-0 leading-relaxed selection:bg-indigo-500/30">&lt;?php
-/**
+                        <pre id="client-snippet" class="text-[13px] text-emerald-400 font-mono overflow-x-auto m-0 leading-relaxed selection:bg-indigo-500/30">/**
  * Acro Manager - Verificação Universal de Licença e Manutenção
  * Basta colar no fim do functions.php do Tema do cliente.
  */
 add_action('template_redirect', 'acro_check_site_status');
 function acro_check_site_status() {
-    $manager_url    = '<?php echo esc_url(site_url()); ?>'; 
+    $manager_url    = 'https://acromidia.com'; 
     $cliente_domain = $_SERVER['HTTP_HOST'];
     
     // Deleta do Cache se revalidado manualmente com ?revalidar-site=sim na URL
@@ -318,7 +317,7 @@ function acro_check_site_status() {
         );
     }
 }
-?&gt;</pre>
+</pre>
                     </div>
                 </div>
 

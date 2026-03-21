@@ -37,4 +37,4 @@ Este documento serve como a **Fonte Única de Verdade (SoT)** para agentes de IA
 
 ## 🚀 Repositório e Deploy
 *   **Git URL**: `https://github.com/acromidiarj/acro-manager.git`
-*   **Release Atual**: `v1.0.4` (Fix visual de ícones Lucide no filtro da UI).
+*   **Release Atual**: `v1.0.6` (Ajustes de UX no snippet de cliente).
