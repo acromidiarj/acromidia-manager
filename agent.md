@@ -37,4 +37,4 @@ Este documento serve como a **Fonte Única de Verdade (SoT)** para agentes de IA
 
 ## 🚀 Repositório e Deploy
 *   **Git URL**: `https://github.com/acromidiarj/acro-manager.git`
-*   **Release Atual**: `v1.2.0` (Arquitetura Source-of-Truth: Fim da criação manual, sincronização mestra via Asaas).
+*   **Release Atual**: `v1.2.1` (Hotfix: Correção de tela em branco no render cycle do Vue).

@@ -815,7 +815,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
           nextTick(lucide.createIcons);
       });
 
-      return { view, clients, loading, search, filterStatus, showModal, showInvoicesModal, invoices, loadingInvoices, asaasBalance, loadingBalance, importing, massBilling, syncingStatus, saving, logs, loadingLogs, metrics, loadingReports, deleteTarget, editTarget, asaasOk, waOk, settingsUrl, form, filteredClients, totalMRR, activeCount, overdueCount, fetchClients, fetchDashboardStats, fetchLogsAndMetrics, importAsaas, massBillOverdue, syncOverduesSilently, saveClient, executeDelete, formatMoney, sendWhatsApp, toggleBlock, syncAsaas, openInvoicesModal, displayMRR, handleMRRInput, displayPhone, handlePhoneInput, formatPhone, openCreateModal, openEditModal };
+      return { view, clients, loading, search, filterStatus, showModal, showInvoicesModal, invoices, loadingInvoices, asaasBalance, loadingBalance, importing, massBilling, syncingStatus, saving, logs, loadingLogs, metrics, loadingReports, deleteTarget, editTarget, asaasOk, waOk, settingsUrl, form, filteredClients, totalMRR, activeCount, overdueCount, fetchClients, fetchDashboardStats, fetchLogsAndMetrics, importAsaas, massBillOverdue, syncOverduesSilently, saveClient, executeDelete, formatMoney, sendWhatsApp, toggleBlock, syncAsaas, openInvoicesModal, displayMRR, handleMRRInput, displayPhone, handlePhoneInput, formatPhone, openEditModal };
     }
   }).mount('#acro-app');
 })();
