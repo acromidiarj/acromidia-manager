@@ -146,24 +146,36 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
         </div>
       </div>
 
-      <div class="card-glass overflow-hidden shadow-2xl shadow-indigo-100/20">
-        <div class="px-8 py-6 bg-slate-50/50 border-b flex justify-between items-center">
-            <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest">Inclusões Recentes</h3>
+      <div class="card-glass overflow-hidden shadow-2xl shadow-rose-100/30 border-t-4 border-t-rose-500">
+        <div class="px-8 py-6 bg-gradient-to-r from-rose-50 to-white flex justify-between items-center border-b border-rose-100">
+            <h3 class="font-black text-rose-800 uppercase text-xs tracking-widest flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-rose-500"></i> Radar de Inadimplência</h3>
+            <button v-if="overdueCount>0" @click="view='clients'; filterStatus='inadimplente';" class="text-[10px] font-black uppercase text-rose-600 hover:text-rose-700 tracking-widest bg-white border border-rose-200 px-3 py-1.5 rounded-full shadow-sm">Ver Todos</button>
         </div>
-        <div v-if="loading" class="p-20 text-center"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-indigo-600"></i></div>
-        <div v-else-if="!clients.length" class="p-20 text-center text-slate-400 font-black text-xs uppercase">Sem registros.</div>
-        <div v-else class="divide-y divide-slate-100">
-            <div v-for="c in clients.slice(0,5)" :key="c.id" class="px-8 py-6 flex items-center justify-between hover:bg-slate-50/50 transition-all">
+        <div v-if="loading" class="p-20 text-center"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-rose-500"></i></div>
+        <div v-else-if="!clients.filter(c => c.status==='inadimplente').length" class="p-20 text-center flex flex-col items-center justify-center">
+            <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-4"><i data-lucide="check-circle-2" class="w-8 h-8"></i></div>
+            <p class="text-slate-900 font-black text-lg">Métricas Perfeitas</p>
+            <p class="text-slate-500 font-medium text-xs mt-1">Nenhum cliente inadimplente no radar atual.</p>
+        </div>
+        <div v-else class="divide-y divide-rose-50">
+            <div v-for="c in clients.filter(c => c.status==='inadimplente').slice(0,5)" :key="c.id" class="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between hover:bg-rose-50/30 transition-all gap-4">
                 <div class="flex items-center gap-5">
-                    <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-indigo-100">{{ c.name.charAt(0) }}</div>
+                    <div class="w-12 h-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center font-black text-lg shadow-md shadow-rose-200">{{ c.name.charAt(0) }}</div>
                     <div>
-                        <p class="font-black text-slate-900 text-lg leading-none">{{ c.name }}</p>
-                        <p class="text-xs text-slate-400 font-bold mt-2 uppercase tracking-wider">{{ formatPhone(c.phone) || 'Sem contato' }}</p>
+                        <p class="font-black text-slate-900 text-base leading-tight">{{ c.name }}</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 uppercase tracking-wider">{{ formatPhone(c.phone) || 'Sem contato' }}</p>
                     </div>
                 </div>
-                <div class="text-right">
-                    <p class="font-black text-indigo-600 text-xl leading-none">R$ {{ formatMoney(c.mrr) }}</p>
-                    <span :class="c.status==='ativo'?'badge-success':'badge-warning'" class="badge mt-2 uppercase">{{ c.status==='ativo'?'EM DIA':'PENDENTE' }}</span>
+                <div class="flex items-center gap-3">
+                    <div class="text-right mr-4 hidden md:block">
+                        <p class="font-black text-rose-600 text-lg leading-none">R$ {{ formatMoney(c.mrr) }}</p>
+                        <p class="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-widest">Atrasado</p>
+                    </div>
+                    
+                    <button v-if="c.site_status === 'blocked'" @click="toggleBlock(c)" class="p-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all shadow-sm flex items-center justify-center shrink-0" title="Desbloquear Site Manualmente"><i data-lucide="lock" class="w-4 h-4"></i></button>
+                    <button v-else @click="toggleBlock(c)" class="p-2.5 rounded-xl border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-all flex items-center justify-center shrink-0" title="Bloquear Site Imediatamente"><i data-lucide="unlock" class="w-4 h-4"></i></button>
+
+                    <button @click="sendWhatsApp($event, c, '15_days_after')" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md shadow-slate-200 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shrink-0" title="Disparar Acompanhamento"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Cobrar</button>
                 </div>
             </div>
         </div>

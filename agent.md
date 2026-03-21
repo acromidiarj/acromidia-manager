@@ -37,4 +37,4 @@ Este documento serve como a **Fonte Única de Verdade (SoT)** para agentes de IA
 
 ## 🚀 Repositório e Deploy
 *   **Git URL**: `https://github.com/acromidiarj/acro-manager.git`
-*   **Release Atual**: `v1.0.6` (Ajustes de UX no snippet de cliente).
+*   **Release Atual**: `v1.1.0` (Novo Action Center "Radar de Inadimplência" no Dashboard).
