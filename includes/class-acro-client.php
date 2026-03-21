@@ -26,7 +26,7 @@ if (!class_exists('LicenseClient')) {
         private static $instances = array();
         public $slug_key;
 
-        public static function instance($slug = 'wp-acronexus')
+        public static function instance($slug = 'acromidia-manager')
         {
             $safe_slug = str_replace('-', '_', $slug);
             return isset(self::$instances[$safe_slug]) ? self::$instances[$safe_slug] : null;
@@ -87,9 +87,9 @@ if (!class_exists('LicenseClient')) {
         public function add_settings_page()
         {
             add_submenu_page(
-                'wp-acronexus',
-                'Ativação',
-                'Ativação',
+                'acromidia-dashboard',
+                'Ativação VIP',
+                'Licença',
                 'manage_options',
                 $this->slug . '-license',
                 [$this, 'render_settings_page']
@@ -209,7 +209,7 @@ if (!class_exists('LicenseClient')) {
                 </div>
 
                 <div style="text-align: center; margin-top: 24px; font-size: 13px; color: #94a3b8;">
-                    WP-AcroNexus License Manager &copy;
+                    Acro Manager License &copy;
                     <?php echo date('Y'); ?> AcroMidia
                 </div>
 
