@@ -7,6 +7,8 @@ class Acromidia_PagBank_API implements Acromidia_Gateway_Interface {
 
     public function __construct() {
         $this->api_key = Acromidia_Settings::get( 'pagbank_api_key' );
+        $mode          = Acromidia_Settings::get( 'pagbank_mode' );
+        $this->base_url = ( $mode === 'sandbox' ) ? 'https://sandbox.api.pagseguro.com' : 'https://api.pagseguro.com';
     }
 
     public function request( $endpoint, $method = 'GET', $body = [] ) {

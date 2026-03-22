@@ -52,6 +52,12 @@ class Acromidia_Settings {
             'placeholder' => 'Chave para validar webhooks (opcional)',
             'help'        => 'Mercado Pago → Notificações → Webhooks',
         ],
+        'mp_mode'             => [
+            'label'       => 'Ambiente Mercado Pago',
+            'type'        => 'select',
+            'options'     => [ 'prod' => 'Produção', 'sandbox' => 'Sandbox' ],
+            'help'        => 'Sandbox usa contas de teste.',
+        ],
         'stripe_api_key'      => [
             'label'       => 'Secret Key Stripe',
             'placeholder' => 'sk_live_...',
@@ -61,6 +67,12 @@ class Acromidia_Settings {
             'label'       => 'Signing Secret Stripe',
             'placeholder' => 'whsec_...',
             'help'        => 'Stripe → Developers → Webhooks → Signing secret',
+        ],
+        'stripe_mode'         => [
+            'label'       => 'Ambiente Stripe',
+            'type'        => 'select',
+            'options'     => [ 'prod' => 'Produção', 'sandbox' => 'Test Mode' ],
+            'help'        => 'Test Mode usa sk_test_...',
         ],
         'pagarme_api_key'     => [
             'label'       => 'Secret Key Pagar.me',
@@ -72,6 +84,12 @@ class Acromidia_Settings {
             'placeholder' => 'Secret configurado no Pagar.me',
             'help'        => 'Validação de segurança das notificações.',
         ],
+        'pagarme_mode'        => [
+            'label'       => 'Ambiente Pagar.me',
+            'type'        => 'select',
+            'options'     => [ 'prod' => 'Produção', 'sandbox' => 'Sandbox' ],
+            'help'        => 'Pagar.me Dash → Configurações → Chaves',
+        ],
         'pagbank_api_key'     => [
             'label'       => 'Token Sandbox / Produção PagBank',
             'placeholder' => 'FEFDF...',
@@ -81,6 +99,12 @@ class Acromidia_Settings {
             'label'       => 'Webhook Secret PagBank',
             'placeholder' => 'Token de validação de notificação',
             'help'        => 'Configure no painel de Notificações.',
+        ],
+        'pagbank_mode'        => [
+            'label'       => 'Ambiente PagBank',
+            'type'        => 'select',
+            'options'     => [ 'prod' => 'Produção', 'sandbox' => 'Sandbox' ],
+            'help'        => 'Sandbox usa endpoint específico de testes.',
         ],
         'wa_token'            => [
             'label'       => 'Token WhatsApp (Meta)',
@@ -387,6 +411,7 @@ class Acromidia_Settings {
                     <div class="p-10 space-y-8 bg-white">
                         <?php self::render_field( 'mp_access_token', 'key' ); ?>
                         <?php self::render_field( 'mp_webhook_secret', 'link' ); ?>
+                        <?php self::render_field( 'mp_mode', 'monitor' ); ?>
                         <div class="pt-6 border-t border-slate-100">
                             <label class="input-label mb-3">URL do Webhook (Copie para o Mercado Pago)</label>
                             <div class="modern-input !bg-slate-50 flex items-center select-all !pl-0 cursor-copy !border-slate-200 overflow-hidden" style="padding:0">
@@ -418,6 +443,7 @@ class Acromidia_Settings {
                     <div class="p-10 space-y-8 bg-white">
                         <?php self::render_field( 'stripe_api_key', 'key' ); ?>
                         <?php self::render_field( 'stripe_webhook_secret', 'link' ); ?>
+                        <?php self::render_field( 'stripe_mode', 'monitor' ); ?>
                         <div class="pt-6 border-t border-slate-100">
                             <label class="input-label mb-3">URL do Webhook (Copie para o Stripe)</label>
                             <div class="modern-input !bg-slate-50 flex items-center select-all !pl-0 cursor-copy !border-slate-200 overflow-hidden" style="padding:0">
@@ -449,6 +475,7 @@ class Acromidia_Settings {
                     <div class="p-10 space-y-8 bg-white">
                         <?php self::render_field( 'pagarme_api_key', 'key' ); ?>
                         <?php self::render_field( 'pagarme_webhook_secret', 'link' ); ?>
+                        <?php self::render_field( 'pagarme_mode', 'monitor' ); ?>
                         <div class="pt-6 border-t border-slate-100">
                             <label class="input-label mb-3">URL do Webhook (Copie para o Pagar.me)</label>
                             <div class="modern-input !bg-slate-50 flex items-center select-all !pl-0 cursor-copy !border-slate-200 overflow-hidden" style="padding:0">
@@ -480,6 +507,7 @@ class Acromidia_Settings {
                     <div class="p-10 space-y-8 bg-white">
                         <?php self::render_field( 'pagbank_api_key', 'key' ); ?>
                         <?php self::render_field( 'pagbank_webhook_secret', 'link' ); ?>
+                        <?php self::render_field( 'pagbank_mode', 'monitor' ); ?>
                         <div class="pt-6 border-t border-slate-100">
                             <label class="input-label mb-3">URL de Notificação (Copie para o PagBank)</label>
                             <div class="modern-input !bg-slate-50 flex items-center select-all !pl-0 cursor-copy !border-slate-200 overflow-hidden" style="padding:0">

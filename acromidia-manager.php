@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Acromidia Manager
  * Description: Sistema completo de gestão de assinaturas, integração Asaas e notificações WhatsApp.
- * Version: 3.0.2
+ * Version: 3.0.3
  * Author: Especialista IA
  * Text Domain: acromidia-manager
  */
