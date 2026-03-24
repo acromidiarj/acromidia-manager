@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Acromidia Manager
  * Description: Sistema completo de gestão de assinaturas, integração Asaas e notificações WhatsApp.
- * Version: 4.0.0
+ * Version: 4.0.1
  * Author: Especialista IA
  * Text Domain: acromidia-manager
  */
@@ -27,7 +27,7 @@ class Acromidia_Manager {
     public function __construct() {
         add_action( 'init', [ $this, 'register_cpt' ] );
         add_action( 'admin_menu', [ $this, 'register_admin_menu' ] );
-        add_action( 'rest_api_init', [ $this, 'register_rest_endpoints' ] );
+        add_action( 'rest_api_init', [ $this, 'register_rest_endpoints' ], 5 );
         
         // Cron diário para Régua de Cobrança
         add_action( 'acromidia_daily_billing', [ $this, 'run_daily_billing' ] );
@@ -128,30 +128,76 @@ class Acromidia_Manager {
         add_menu_page(
             'Acro Manager',
             'Acro Manager',
-            'manage_options',
+            'read', // Permitir acesso básico para clientes se o modo estiver ativo
             'acromidia-dashboard',
             [ $this, 'render_dashboard_view' ],
             $icon_svg,
             2
         );
 
-        // Renomear o primeiro submenu (gerado automaticamente pelo WP com o mesmo nome do menu pai)
+        // Renomear o primeiro submenu
         add_submenu_page(
             'acromidia-dashboard',
             'Dashboard',
             'Dashboard',
-            'manage_options',
+            'read',
             'acromidia-dashboard',
             [ $this, 'render_dashboard_view' ]
         );
 
-        // CSS para colorir o ícone SVG no menu
+        // Lógica de Restrição de Menus (Modo Cliente)
+        add_action( 'admin_menu', function() {
+            if ( Acromidia_Settings::get('restrict_admin') !== 'yes' ) return;
+            if ( current_user_can( 'manage_options' ) ) return; 
+
+            global $menu, $submenu;
+
+            // Menus a serem removidos
+            $remove_pages = [
+                'index.php', 'edit.php', 'upload.php', 'edit.php?post_type=page',
+                'edit-comments.php', 'themes.php', 'plugins.php', 'users.php',
+                'tools.php', 'options-general.php', 'edit.php?post_type=acro_client',
+                'edit.php?post_type=acro_log', 'edit.php?post_type=acro_transaction',
+                'edit.php?post_type=acro_document', 'edit.php?post_type=acro_task',
+                'separator1', 'separator2', 'separator-last'
+            ];
+
+            foreach ( $menu as $key => $value ) {
+                if ( ! empty($value[2]) && ( in_array( $value[2], $remove_pages ) || empty($value[0]) ) ) {
+                    unset( $menu[$key] );
+                }
+            }
+
+            // Garante que o usuário caia no Dashboard se entrar no /wp-admin/ puro
+            global $pagenow;
+            if ( $pagenow === 'index.php' ) {
+                wp_safe_redirect( admin_url( 'admin.php?page=acromidia-dashboard' ) );
+                exit;
+            }
+        }, 999 );
+
+        // Remove barra do admin no frontend e limpa opções no admin
         add_action( 'admin_head', function() {
+            if ( Acromidia_Settings::get('restrict_admin') !== 'yes' ) return;
+            if ( ! current_user_can( 'manage_options' ) ) {
+                echo '<style>
+                    #contextual-help-link-wrap, #screen-options-link-wrap, #wp-admin-bar-updates, #wp-admin-bar-comments, #wp-admin-bar-new-content { display: none !important; }
+                    #adminmenu .wp-menu-separator { display: none !important; }
+                </style>';
+            }
+            
+            // CSS para colorir o ícone SVG no menu
             echo '<style>
                 #toplevel_page_acromidia-dashboard .wp-menu-image img { filter: brightness(0) invert(1); opacity: 0.7; }
                 #toplevel_page_acromidia-dashboard:hover .wp-menu-image img,
                 #toplevel_page_acromidia-dashboard.current .wp-menu-image img { filter: brightness(0) saturate(100%) invert(47%) sepia(98%) saturate(1500%) hue-rotate(229deg); opacity: 1; }
             </style>';
+        } );
+
+        add_action( 'after_setup_theme', function() {
+            if ( Acromidia_Settings::get('restrict_admin') === 'yes' && ! current_user_can( 'manage_options' ) ) {
+                show_admin_bar( false );
+            }
         } );
     }
 
@@ -163,7 +209,8 @@ class Acromidia_Manager {
     //  REST Endpoints
     // ───────────────────────────────────
     public function register_rest_endpoints() {
-        $admin_perm = function () { return current_user_can( 'manage_options' ); };
+        error_log('[ACROMIDIA MANAGER] Registering REST endpoints...');
+        $admin_perm = [ $this, 'check_admin_permission' ];
 
         // GET — listar clientes
         register_rest_route( 'acromidia/v1', '/clients', [
@@ -394,6 +441,19 @@ class Acromidia_Manager {
     // ───────────────────────────────────
     //  Callbacks REST
     // ───────────────────────────────────
+
+    public function check_admin_permission() {
+        if ( current_user_can( 'manage_options' ) ) {
+            return true;
+        }
+
+        // Se o modo restrito estiver ativo, permite acesso a quem tem 'read' (clientes logados)
+        if ( Acromidia_Settings::get('restrict_admin') === 'yes' && current_user_can( 'read' ) ) {
+            return true;
+        }
+
+        return false;
+    }
 
     /**
      * GET /clients — Lista todos os clientes com meta.
@@ -1609,9 +1669,9 @@ class Acromidia_Manager {
 }
 
 // Inicializa o SDK do AcroLicense para Updates Automaticos
-if ( file_exists( plugin_dir_path( __FILE__ ) . 'includes/class-acro-client.php' ) ) {
-    require_once plugin_dir_path( __FILE__ ) . 'includes/class-acro-client.php';
-    if ( class_exists( '\\Acromidia_Manager\\Core\\LicenseClient' ) ) {
+if ( file_exists( __DIR__ . '/includes/class-acro-client.php' ) ) {
+    require_once __DIR__ . '/includes/class-acro-client.php';
+    if ( class_exists( 'Acromidia_Manager\Core\LicenseClient' ) ) {
         \Acromidia_Manager\Core\LicenseClient::init_from_json( __FILE__ );
     }
 }

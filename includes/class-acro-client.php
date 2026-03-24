@@ -455,7 +455,6 @@ if (!class_exists('LicenseClient')) {
             }
 
             $response_body = json_decode(wp_remote_retrieve_body($request));
-
             return $response_body;
         }
     }
