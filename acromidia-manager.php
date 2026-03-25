@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Acromidia Manager
  * Description: Sistema completo de gestão de assinaturas, integração Asaas e notificações WhatsApp.
- * Version: 4.0.1
+ * Version: 4.0.2
  * Author: Especialista IA
  * Text Domain: acromidia-manager
  */
@@ -25,7 +25,18 @@ new Acromidia_Settings();
 class Acromidia_Manager {
 
     public function __construct() {
-        add_action( 'init', [ $this, 'register_cpt' ] );
+        add_action( 'init', [ $this, 'register_hooks' ] );
+        add_filter( 'template_include', [ $this, 'portal_template_redirect' ] );
+        register_activation_hook( __FILE__, [ $this, 'activate' ] );
+    }
+
+    public function activate() {
+        $this->register_hooks();
+        flush_rewrite_rules();
+    }
+
+    public function register_hooks() {
+        $this->register_cpt();
         add_action( 'admin_menu', [ $this, 'register_admin_menu' ] );
         add_action( 'rest_api_init', [ $this, 'register_rest_endpoints' ], 5 );
         
@@ -37,6 +48,22 @@ class Acromidia_Manager {
 
         // Template para documentos públicos
         add_filter( 'template_include', [ $this, 'render_document_template' ] );
+
+        // Portal do Cliente
+        add_filter( 'query_vars', function( $vars ) {
+            $vars[] = 'acro_portal';
+            $vars[] = 'acro_id';
+            return $vars;
+        } );
+        add_rewrite_rule( '^portal-do-cliente/([a-z0-9\-]+)/?$', 'index.php?acro_portal=1&acro_id=$matches[1]', 'top' );
+        add_rewrite_rule( '^portal-do-cliente/?$', 'index.php?acro_portal=1', 'top' );
+    }
+
+    public function portal_template_redirect( $template ) {
+        if ( get_query_var( 'acro_portal' ) ) {
+            return plugin_dir_path( __FILE__ ) . 'public/portal-template.php';
+        }
+        return $template;
     }
 
     // ───────────────────────────────────
@@ -98,9 +125,9 @@ class Acromidia_Manager {
         ] );
 
         // Force refresh of rewrite rules on first load after this update
-        if ( ! get_option( 'acro_v4_flush_rewrite' ) ) {
+        if ( ! get_option( 'acro_v4_2_flush_rewrite' ) ) {
             flush_rewrite_rules( true );
-            update_option( 'acro_v4_flush_rewrite', true );
+            update_option( 'acro_v4_2_flush_rewrite', true );
         }
 
         // CPT para Tarefas (Gestão de Projetos / Kanban)
@@ -412,6 +439,13 @@ class Acromidia_Manager {
             'permission_callback' => $admin_perm,
         ] );
 
+        // POST PÚBLICO — Aceite de Cliente
+        register_rest_route( 'acromidia/v1', '/public/documents/(?P<id>\d+)/accept', [
+            'methods'             => 'POST',
+            'callback'            => [ $this, 'accept_document_public' ],
+            'permission_callback' => '__return_true',
+        ] );
+
         // --- GESTÃO DE TAREFAS (KANBAN) ---
         register_rest_route( 'acromidia/v1', '/tasks', [
             'methods'             => 'GET',
@@ -435,6 +469,33 @@ class Acromidia_Manager {
             'methods'             => 'DELETE',
             'callback'            => [ $this, 'delete_task' ],
             'permission_callback' => $admin_perm,
+        ] );
+
+        // --- GESTÃO DE PRODUTOS/SERVIÇOS ---
+        register_rest_route( 'acromidia/v1', '/products', [
+            'methods'             => 'GET',
+            'callback'            => [ $this, 'get_products' ],
+            'permission_callback' => $admin_perm,
+        ] );
+
+        register_rest_route( 'acromidia/v1', '/products', [
+            'methods'             => 'POST',
+            'callback'            => [ $this, 'save_products' ],
+            'permission_callback' => $admin_perm,
+        ] );
+
+        // --- RELATÓRIOS AVANÇADOS (DRE/CHURN) ---
+        register_rest_route( 'acromidia/v1', '/reports/dre', [
+            'methods'             => 'GET',
+            'callback'            => [ $this, 'get_dre_report' ],
+            'permission_callback' => $admin_perm,
+        ] );
+
+        // --- PORTAL DO CLIENTE (PÚBLICO) ---
+        register_rest_route( 'acromidia/v1', '/portal/(?P<id>[a-zA-Z0-9\-]+)', [
+            'methods'             => 'GET',
+            'callback'            => [ $this, 'get_portal_data' ],
+            'permission_callback' => '__return_true', // Público
         ] );
     }
 
@@ -509,6 +570,8 @@ class Acromidia_Manager {
         update_post_meta( $post_id, '_acro_mrr', $mrr );
         update_post_meta( $post_id, '_acro_site_url', $site_url );
         update_post_meta( $post_id, '_acro_status', 'ativo' );
+        update_post_meta( $post_id, '_acro_uuid', wp_generate_uuid4() );
+        update_post_meta( $post_id, '_acro_portal_slug', $this->generate_unique_portal_slug() );
 
         // Tentar criar cliente no Gateway (se API configurada)
         $gateway_id = '';
@@ -556,11 +619,14 @@ class Acromidia_Manager {
         }
 
         update_post_meta( $post_id, '_acro_phone', $phone );
-        update_post_meta( $post_id, '_acro_mrr', 0 );
-        update_post_meta( $post_id, '_acro_site_url', '' );
+        update_post_meta( $post_id, '_acro_mrr', floatval( $params['mrr'] ?? 0 ) );
+        update_post_meta( $post_id, '_acro_site_url', esc_url_raw( $params['site_url'] ?? '' ) );
         update_post_meta( $post_id, '_acro_status', 'ativo' );
         update_post_meta( $post_id, '_acro_pipeline_stage', 'prospect' );
         update_post_meta( $post_id, '_acro_product', sanitize_text_field( $params['product'] ?? '' ) );
+        update_post_meta( $post_id, '_acro_notes', wp_kses_post( $params['notes'] ?? '' ) );
+        update_post_meta( $post_id, '_acro_uuid', wp_generate_uuid4() );
+        update_post_meta( $post_id, '_acro_portal_slug', $this->generate_unique_portal_slug() );
         
         $client_post = get_post( $post_id );
         return rest_ensure_response( $this->format_client( $client_post ) );
@@ -596,7 +662,22 @@ class Acromidia_Manager {
             'status'         => '_acro_status',
             'pipeline_stage' => '_acro_pipeline_stage',
             'product'        => '_acro_product',
+            'notes'          => '_acro_notes',
         ];
+
+        // Registrar data de fechamento (Sales Cycle)
+        if ( isset( $params['pipeline_stage'] ) && $params['pipeline_stage'] === 'won' ) {
+            $old_stage = get_post_meta( $id, '_acro_pipeline_stage', true );
+            if ( $old_stage !== 'won' ) {
+                update_post_meta( $id, '_acro_won_date', current_time( 'mysql' ) );
+            }
+        }
+        if ( isset( $params['status'] ) && $params['status'] === 'ativo' ) {
+            $old_status = get_post_meta( $id, '_acro_status', true );
+            if ( $old_status === 'inadimplente' ) {
+                update_post_meta( $id, '_acro_recovered_at', current_time( 'mysql' ) );
+            }
+        }
 
         foreach ( $meta_map as $param_key => $meta_key ) {
             if ( isset( $params[ $param_key ] ) ) {
@@ -1349,6 +1430,212 @@ class Acromidia_Manager {
         ]);
     }
 
+    /**
+     * PRODUTOS/SERVIÇOS: Listar
+     */
+    public function get_products() {
+        $default = [
+            'Site Institucional',
+            'Landing Page',
+            'Loja Virtual',
+            'Tráfego Pago',
+            'Social Media',
+            'Identidade Visual',
+            'Consultoria'
+        ];
+        $custom = get_option('_acro_product_list', $default);
+        return rest_ensure_response($custom);
+    }
+
+    /**
+     * PRODUTOS/SERVIÇOS: Salvar/Adicionar
+     */
+    public function save_products( \WP_REST_Request $request ) {
+        $params = $request->get_json_params();
+        $products = (array) ($params['products'] ?? []);
+        
+        $sanitized = array_values(array_unique(array_filter(
+            array_map('sanitize_text_field', $products),
+            fn($p) => strlen($p) > 2
+        )));
+
+        update_option('_acro_product_list', $sanitized);
+        return rest_ensure_response($sanitized);
+    }
+
+    /**
+     * DRE: Consolidação Financeira Mensal
+     */
+    public function get_dre_report() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'posts';
+        $meta  = $wpdb->prefix . 'postmeta';
+
+        // Consolida por Mês (últimos 6 meses)
+        $report = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = date('Y-m', strtotime("-$i months"));
+            $report[$month] = [
+                'month'   => date_i18n('F', strtotime($month . '-01')),
+                'income'  => 0,
+                'expense' => 0,
+                'profit'  => 0,
+            ];
+        }
+
+        // Buscar todas as transações (não excluídas e publicadas)
+        $query = "SELECT p.ID, 
+                   m1.meta_value as type, 
+                   m2.meta_value as amount, 
+                   m3.meta_value as date
+            FROM $table p
+            JOIN $meta m1 ON (p.ID = m1.post_id AND m1.meta_key = '_acro_finance_type')
+            JOIN $meta m2 ON (p.ID = m2.post_id AND m2.meta_key = '_acro_finance_amount')
+            JOIN $meta m3 ON (p.ID = m3.post_id AND m3.meta_key = '_acro_finance_date')
+            WHERE p.post_type = 'acro_transaction' 
+              AND p.post_status = 'publish'";
+
+        $results = $wpdb->get_results($query);
+
+        foreach ($results as $row) {
+            $month = substr($row->date, 0, 7);
+            if (isset($report[$month])) {
+                $val = floatval($row->amount);
+                if ($row->type === 'income') {
+                    $report[$month]['income'] += $val;
+                } else {
+                    $report[$month]['expense'] += $val;
+                }
+            }
+        }
+
+        foreach ($report as &$m) {
+            $m['profit'] = $m['income'] - $m['expense'];
+        }
+
+        // Churn e LTV Metrics (Simples)
+        $all_clients = get_posts(['post_type' => 'acro_client', 'numberposts' => -1]);
+        $total_active = 0;
+        $total_lost = 0;
+        $total_mrr = 0;
+        $sales_cycle_days = [];
+        $recovered_last_30 = 0;
+        $overdue_last_30 = 0;
+
+        $now = time();
+        $thirty_days_ago = $now - (30 * DAY_IN_SECONDS);
+
+        foreach ($all_clients as $c) {
+            $status = get_post_meta($c->ID, '_acro_status', true);
+            $stage = get_post_meta($c->ID, '_acro_pipeline_stage', true);
+            $mrr = floatval(get_post_meta($c->ID, '_acro_mrr', true));
+            $won_date = get_post_meta($c->ID, '_acro_won_date', true);
+            $recovered_at = get_post_meta($c->ID, '_acro_recovered_at', true);
+            $created_at = strtotime($c->post_date);
+
+            if ($stage === 'lost') {
+                $total_lost++;
+            } else {
+                $total_active++;
+                $total_mrr += $mrr;
+                
+                if ($won_date) {
+                    $won_ts = strtotime($won_date);
+                    $sales_cycle_days[] = round(($won_ts - $created_at) / DAY_IN_SECONDS);
+                }
+            }
+
+            if ($status === 'inadimplente') {
+                $overdue_last_30++;
+            }
+
+            if ($recovered_at && strtotime($recovered_at) >= $thirty_days_ago) {
+                $recovered_last_30++;
+            }
+        }
+
+        $avg_sales_cycle = !empty($sales_cycle_days) ? array_sum($sales_cycle_days) / count($sales_cycle_days) : 0;
+        $recovery_rate = ($overdue_last_30 + $recovered_last_30) > 0 ? ($recovered_last_30 / ($overdue_last_30 + $recovered_last_30)) * 100 : 0;
+        $churn_rate = $total_active > 0 ? ($total_lost / ($total_active + $total_lost)) * 100 : 0;
+        $avg_mrr = $total_active > 0 ? ($total_mrr / $total_active) : 0;
+        
+        return rest_ensure_response([
+            'history' => array_values($report),
+            'metrics' => [
+                'churn_rate'    => round($churn_rate, 2),
+                'avg_mrr'       => $avg_mrr,
+                'ltv'           => $avg_mrr * 12,
+                'active'        => $total_active,
+                'lost'          => $total_lost,
+                'sales_cycle'   => round($avg_sales_cycle, 1),
+                'recovery_rate' => round($recovery_rate, 2),
+                'mrr_goal'      => floatval(Acromidia_Settings::get('mrr_goal') ?: 0)
+            ]
+        ]);
+    }
+
+    /**
+     * PORTAL: Dados do cliente via UUID ou Slug Curto
+     */
+    public function get_portal_data( \WP_REST_Request $request ) {
+        $id = sanitize_text_field( $request->get_param('id') );
+        
+        // Tenta buscar por UUID primeiro
+        $clients = get_posts([
+            'post_type'  => 'acro_client',
+            'meta_key'   => '_acro_uuid',
+            'meta_value' => $id,
+            'posts_per_page' => 1
+        ]);
+
+        // Se não achar por UUID, tenta por Slug Curto
+        if ( empty($clients) ) {
+            $clients = get_posts([
+                'post_type'  => 'acro_client',
+                'meta_key'   => '_acro_portal_slug',
+                'meta_value' => $id,
+                'posts_per_page' => 1
+            ]);
+        }
+
+        if ( empty($clients) ) {
+            return new \WP_REST_Response(['error' => 'not_found'], 404);
+        }
+
+        $c = $clients[0];
+        $client_data = $this->format_client($c);
+        
+        // Buscar Faturas no Gateway
+        $invoices = [];
+        $asaas_id = get_post_meta($c->ID, '_acro_gateway_customer_id', true);
+        
+        if ( $asaas_id && Acromidia_Gateway_Factory::is_configured() ) {
+            $gateway = Acromidia_Gateway_Factory::get_engine();
+            $result = $gateway->list_payments($asaas_id);
+            if ( !empty($result['data']) ) {
+                $invoices = array_map(function($inv) {
+                    return [
+                        'id'          => $inv['id'],
+                        'value'       => $inv['value'],
+                        'dueDate'     => $inv['dueDate'],
+                        'status'      => $inv['status'],
+                        'invoiceUrl'  => $inv['invoiceUrl'] ?? $inv['bankSlipUrl'] ?? null,
+                        'description' => $inv['description']
+                    ];
+                }, $result['data']);
+            }
+        }
+
+        return rest_ensure_response([
+            'client'   => $client_data,
+            'invoices' => $invoices,
+            'branding' => [
+                'logo'  => Acromidia_Settings::get('dashboard_logo'),
+                'color' => Acromidia_Settings::get('primary_color') ?: '#4f46e5'
+            ]
+        ]);
+    }
+
     private function format_transaction($post) {
         return [
             'id'          => $post->ID,
@@ -1404,6 +1691,8 @@ class Acromidia_Manager {
         update_post_meta($p_id, '_acro_total', floatval($params['total'] ?? 0));
         update_post_meta($p_id, '_acro_status', 'pendente');
         update_post_meta($p_id, '_acro_terms', wp_kses_post($params['terms'] ?? ''));
+        update_post_meta($p_id, '_acro_doc_content', wp_kses_post($params['content'] ?? ''));
+        update_post_meta($p_id, '_acro_doc_contact', sanitize_text_field($params['contact_name'] ?? ''));
 
         return rest_ensure_response($this->format_document(get_post($p_id)));
     }
@@ -1414,6 +1703,14 @@ class Acromidia_Manager {
     public function update_document( \WP_REST_Request $request ) {
         $id = $request->get_param('id');
         $params = $request->get_json_params();
+        
+        // Bloqueio de segurança: documentos aceitos não podem ser editados
+        $current_status = get_post_meta($id, '_acro_status', true);
+        if ( $current_status === 'aceito' ) {
+            return new \WP_REST_Response([
+                'error' => 'Documentos aceitos não podem ser editados. Reverta o status para pendente antes de realizar alterações.'
+            ], 403);
+        }
         
         $post_data = ['ID' => $id];
         if ( isset($params['title']) ) {
@@ -1428,6 +1725,8 @@ class Acromidia_Manager {
         if ( isset($params['items']) ) update_post_meta($id, '_acro_items', $params['items']);
         if ( isset($params['total']) ) update_post_meta($id, '_acro_total', floatval($params['total']));
         if ( isset($params['terms']) ) update_post_meta($id, '_acro_terms', wp_kses_post($params['terms']));
+        if ( isset($params['content']) ) update_post_meta($id, '_acro_doc_content', wp_kses_post($params['content']));
+        if ( isset($params['contact_name']) ) update_post_meta($id, '_acro_doc_contact', sanitize_text_field($params['contact_name']));
 
         return rest_ensure_response($this->format_document(get_post($id)));
     }
@@ -1512,7 +1811,12 @@ class Acromidia_Manager {
      */
     public function revert_document( \WP_REST_Request $request ) {
         $id = $request->get_param('id');
+        $status = get_post_meta($id, '_acro_status', true);
         
+        if ($status === 'aceito') {
+            return new \WP_REST_Response(['success' => false, 'error' => 'Não é permitido reverter um documento após o aceite.'], 403);
+        }
+
         // 1. Atualizar status do documento para pendente
         update_post_meta($id, '_acro_status', 'pendente');
 
@@ -1531,6 +1835,40 @@ class Acromidia_Manager {
         return rest_ensure_response(['success' => true]);
     }
 
+    public function accept_document_public( \WP_REST_Request $request ) {
+        $id = $request->get_param('id');
+        $doc = get_post($id);
+        if (!$doc || $doc->post_type !== 'acro_document') {
+            return new \WP_REST_Response(['error' => 'not_found'], 404);
+        }
+
+        // 1. Atualizar status
+        update_post_meta($id, '_acro_status', 'aceito');
+        update_post_meta($id, '_acro_accepted_at', current_time('mysql'));
+        update_post_meta($id, '_acro_accepted_ip', $_SERVER['REMOTE_ADDR']);
+
+        // 2. Automacação Kanban (se houver tarefa)
+        $tasks = get_posts([
+            'post_type'  => 'acro_task',
+            'meta_key'   => '_acro_document_id',
+            'meta_value' => $id,
+            'posts_per_page' => -1
+        ]);
+        foreach ($tasks as $t) {
+            update_post_meta($t->ID, '_acro_task_status', 'done');
+        }
+
+        // 3. Log do Sistema
+        wp_insert_post([
+            'post_type'    => 'acro_log',
+            'post_title'   => "[NEGÓCIO] Proposta Aceita - {$doc->post_title}",
+            'post_content' => "O cliente aceitou formalmente o documento via link público.\nIP: {$_SERVER['REMOTE_ADDR']}",
+            'post_status'  => 'publish'
+        ]);
+
+        return rest_ensure_response(['success' => true]);
+    }
+
     private function format_document($post) {
         return [
             'id'           => $post->ID,
@@ -1544,7 +1882,9 @@ class Acromidia_Manager {
             'status'       => get_post_meta($post->ID, '_acro_status', true),
             'date'         => get_the_date('d/m/Y', $post->ID),
             'public_url'   => get_permalink($post->ID),
-            'terms'        => get_post_meta($post->ID, '_acro_terms', true) ?: ''
+            'terms'        => get_post_meta($post->ID, '_acro_terms', true) ?: '',
+            'content'      => get_post_meta($post->ID, '_acro_doc_content', true) ?: '',
+            'contact_name' => get_post_meta($post->ID, '_acro_doc_contact', true) ?: ''
         ];
     }
 
@@ -1651,9 +1991,24 @@ class Acromidia_Manager {
     }
 
     private function format_client( $post ) {
+        $uuid = get_post_meta( $post->ID, '_acro_uuid', true );
+        if ( empty( $uuid ) ) {
+            $uuid = wp_generate_uuid4();
+            update_post_meta( $post->ID, '_acro_uuid', $uuid );
+        }
+
+        $slug = get_post_meta( $post->ID, '_acro_portal_slug', true );
+        if ( empty( $slug ) ) {
+            $slug = $this->generate_unique_portal_slug();
+            update_post_meta( $post->ID, '_acro_portal_slug', $slug );
+        }
+
         return [
-            'id'          => $post->ID,
-            'name'        => $post->post_title,
+            'id'             => $post->ID,
+            'name'           => $post->post_title,
+            'uuid'           => $uuid,
+            'slug'           => $slug,
+            'portal_url'     => home_url( "/portal-do-cliente/{$slug}/" ),
             'asaas_id'    => get_post_meta( $post->ID, '_acro_gateway_customer_id', true ),
             'cpf_cnpj'    => get_post_meta( $post->ID, '_acro_cpf_cnpj', true ),
             'email'       => get_post_meta( $post->ID, '_acro_email', true ),
@@ -1664,7 +2019,38 @@ class Acromidia_Manager {
             'site_status'    => get_post_meta( $post->ID, '_acro_site_status', true ) ?: 'active',
             'pipeline_stage' => get_post_meta( $post->ID, '_acro_pipeline_stage', true ) ?: 'onboarding',
             'product'        => get_post_meta( $post->ID, '_acro_product', true ) ?: '',
+            'notes'          => get_post_meta( $post->ID, '_acro_notes', true ) ?: '',
         ];
+    }
+
+    /**
+     * Gera um slug único de 8 caracteres alfanuméricos
+     */
+    private function generate_unique_portal_slug() {
+        $chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        $is_unique = false;
+        $slug = '';
+
+        while ( ! $is_unique ) {
+            $slug = '';
+            for ( $i = 0; $i < 8; $i++ ) {
+                $slug .= $chars[ wp_rand( 0, strlen( $chars ) - 1 ) ];
+            }
+
+            // Verifica se já existe
+            $existing = get_posts([
+                'post_type'  => 'acro_client',
+                'meta_key'   => '_acro_portal_slug',
+                'meta_value' => $slug,
+                'posts_per_page' => 1
+            ]);
+
+            if ( empty( $existing ) ) {
+                $is_unique = true;
+            }
+        }
+
+        return $slug;
     }
 }
 

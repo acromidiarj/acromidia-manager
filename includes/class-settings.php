@@ -113,8 +113,15 @@ class Acromidia_Settings {
         ],
         'wa_phone_id'         => [
             'label'       => 'Phone ID WhatsApp',
+            'type'        => 'text',
             'placeholder' => 'ID numérico do telefone',
             'help'        => 'Meta Business → WhatsApp → Configuração da API',
+        ],
+        'wa_contact_phone'    => [
+            'label'       => 'WhatsApp de Suporte',
+            'type'        => 'text',
+            'placeholder' => '5511999999999',
+            'help'        => 'Número que aparecerá no Portal do Cliente para suporte (DDI + DDD + Número).',
         ],
         'restrict_admin'      => [
             'label'       => 'Modo Cliente Restrito',
@@ -124,6 +131,23 @@ class Acromidia_Settings {
                 'yes' => 'Ativado (Ocultar menus do WordPress)',
             ],
             'help'        => 'Se ativado, usuários sem permissão de Administrador verão APENAS o Acro Manager no menu.',
+        ],
+        'dashboard_logo'      => [
+            'label'       => 'Logo do Dashboard (WordPress)',
+            'type'        => 'media',
+            'placeholder' => 'Selecione uma imagem da biblioteca...',
+            'help'        => 'Clique no botão para escolher um logo da sua galeria de mídia.',
+        ],
+        'primary_color'       => [
+            'label'       => 'Cor Primária do Painel',
+            'type'        => 'color',
+            'help'        => 'Define a cor principal de botões, ícones e destaques do sistema.',
+        ],
+        'mrr_goal'            => [
+            'label'       => 'Meta de MRR Mensal (R$)',
+            'type'        => 'number',
+            'placeholder' => '10000',
+            'help'        => 'Sua meta de faturamento recorrente mensal. Aparecerá no Dashboard como barra de progresso.',
         ],
     ];
 
@@ -138,7 +162,14 @@ class Acromidia_Settings {
     public function __construct() {
         // Prioridade 20: garante que o menu pai (registrado com prioridade 10) já exista
         add_action( 'admin_menu', [ $this, 'register_submenu' ], 20 );
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_media_scripts' ] );
         add_action( 'admin_init', [ $this, 'handle_save' ] );
+    }
+
+    public function enqueue_media_scripts( $hook ) {
+        if ( strpos( $hook, 'acromidia-settings' ) !== false ) {
+            wp_enqueue_media();
+        }
     }
 
     /**
@@ -265,6 +296,8 @@ class Acromidia_Settings {
         $saved        = isset( $_GET['saved'] );
         $disconnected = isset( $_GET['disconnected'] );
         $dash_url     = admin_url( 'admin.php?page=acromidia-dashboard' );
+        $custom_logo  = self::get( 'dashboard_logo' );
+        $primary_color = self::get( 'primary_color' ) ?: '#4f46e5';
         ?>
         <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
@@ -272,7 +305,7 @@ class Acromidia_Settings {
 
         <style>
             :root {
-              --acro-primary: #4f46e5;
+              --acro-primary: <?php echo esc_attr($primary_color); ?>;
               --acro-bg: #f8fafc;
               --acro-text: #0f172a;
               --acro-slate: #64748b;
@@ -312,8 +345,12 @@ class Acromidia_Settings {
             
             <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <div>
-                    <div class="w-16 h-16 bg-slate-900 rounded-[22px] flex items-center justify-center shadow-2xl shadow-slate-300 mb-8 border border-slate-700">
-                        <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
+                    <div class="w-16 h-16 rounded-[22px] flex items-center justify-center shadow-2xl shadow-indigo-200 mb-8 overflow-hidden" style="background-color: var(--acro-primary);">
+                        <?php if ( $custom_logo ) : ?>
+                            <img src="<?php echo esc_url($custom_logo); ?>" class="w-full h-full object-contain p-2">
+                        <?php else : ?>
+                            <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
+                        <?php endif; ?>
                     </div>
                     <h1 class="text-4xl font-black text-slate-900 tracking-tighter">Cofre de Integrações</h1>
                     <p class="text-slate-500 font-bold mt-2 text-sm leading-relaxed">Gerencie chaves de API e tokens criptografados com padrão militar (AES-256).</p>
@@ -559,6 +596,7 @@ class Acromidia_Settings {
                     <div class="p-10 space-y-8 bg-white">
                         <?php self::render_field( 'wa_token', 'key' ); ?>
                         <?php self::render_field( 'wa_phone_id', 'hash' ); ?>
+                        <?php self::render_field( 'wa_contact_phone', 'message-circle' ); ?>
                     </div>
                 </div>
                 </div> <!-- /TAB 2 -->
@@ -619,6 +657,30 @@ function acro_check_site_status() {
                         </div>
                         <div class="p-10 space-y-8 bg-white">
                             <?php self::render_field( 'restrict_admin', 'lock' ); ?>
+                        </div>
+                    </div>
+
+                    <!-- Branding e Identidade Visual -->
+                    <div class="card-glass overflow-hidden mt-8 mb-12">
+                        <div class="px-10 py-8 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-white flex items-center justify-between">
+                            <div class="flex items-center gap-6">
+                                <div class="w-16 h-16 bg-gradient-to-tr from-indigo-400 to-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-200">
+                                    <i data-lucide="palette" class="w-8 h-8"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-2xl font-black text-slate-900 tracking-tighter">Branding e Identidade</h2>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Personalize o visual do painel para seus clientes</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-10 space-y-8 bg-white">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <?php self::render_field( 'dashboard_logo', 'image' ); ?>
+                                <?php self::render_field( 'primary_color', 'palette' ); ?>
+                            </div>
+                            <div class="mt-8 pt-8 border-t border-slate-100">
+                                <?php self::render_field( 'mrr_goal', 'target' ); ?>
+                            </div>
                         </div>
                     </div>
                 </div> <!-- /TAB 3 -->
@@ -710,6 +772,42 @@ function acro_check_site_status() {
                         }
                     });
                 });
+
+                // MEDIA SELECTOR LOGIC
+                const mediaBtns = document.querySelectorAll('.acro-media-selector');
+                mediaBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetId = btn.getAttribute('data-target');
+                        const input = document.getElementById(targetId);
+                        
+                        const frame = wp.media({
+                            title: 'Selecionar Logo do Dashboard',
+                            button: { text: 'Usar esta Imagem' },
+                            multiple: false
+                        });
+
+                        frame.on('select', () => {
+                            const attachment = frame.state().get('selection').first().toJSON();
+                            input.value = attachment.url;
+                            
+                            // Update preview if exists
+                            let preview = document.getElementById('preview_' + targetId);
+                            if (!preview) {
+                                const container = btn.closest('.space-y-2');
+                                const helpText = container.querySelector('p.text-[11px]');
+                                const previewCont = document.createElement('div');
+                                previewCont.className = 'p-4 border border-dashed border-slate-200 rounded-2xl bg-slate-50 flex items-center justify-center preview-container mb-4';
+                                previewCont.innerHTML = `<img src="${attachment.url}" class="max-h-16 object-contain" id="preview_${targetId}">`;
+                                container.insertBefore(previewCont, helpText);
+                            } else {
+                                preview.src = attachment.url;
+                            }
+                        });
+
+                        frame.open();
+                    });
+                });
             });
         </script>
         <?php
@@ -761,11 +859,26 @@ function acro_check_site_status() {
                     <input type="<?php echo esc_attr( $type ); ?>"
                            id="acro_<?php echo esc_attr( $key ); ?>"
                            name="acro_<?php echo esc_attr( $key ); ?>"
-                           placeholder="<?php echo esc_attr( $has_value ? '••••••••••••••••••••' : $config['placeholder'] ); ?>"
+                           <?php if ( $type === 'password' ) : ?>
+                               placeholder="<?php echo esc_attr( $has_value ? '••••••••••••••••••••' : $config['placeholder'] ); ?>"
+                           <?php else : ?>
+                               value="<?php echo esc_attr( $current ); ?>"
+                               placeholder="<?php echo esc_attr( $config['placeholder'] ?? '' ); ?>"
+                           <?php endif; ?>
                            class="modern-input"
                            autocomplete="off">
                 <?php endif; ?>
+                
+                <?php if ( $type === 'media' ) : ?>
+                    <button type="button" class="acro-media-selector absolute right-2 top-1/2 -translate-y-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-200 transition-all font-sans" data-target="acro_<?php echo esc_attr( $key ); ?>">Mídia</button>
+                <?php endif; ?>
             </div>
+            
+            <?php if ( $type === 'media' && $current ) : ?>
+                <div class="p-4 border border-dashed border-slate-200 rounded-2xl bg-slate-50 flex items-center justify-center preview-container">
+                    <img src="<?php echo esc_url( $current ); ?>" class="max-h-16 object-contain" id="preview_acro_<?php echo esc_attr( $key ); ?>">
+                </div>
+            <?php endif; ?>
             
             <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest pl-1 mt-2 flex items-center gap-2"><i data-lucide="info" class="w-3 h-3 text-indigo-400"></i> <?php echo esc_html( $config['help'] ); ?></p>
         </div>

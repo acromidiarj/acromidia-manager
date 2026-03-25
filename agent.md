@@ -28,11 +28,9 @@ Este documento serve como a **Fonte Única de Verdade (SoT)** para agentes de IA
 5.  **Clean Code**: NUNCA utilize inline CSS hardcoded para cores. Refira-se sempre às classes do Tailwind ou às variáveis definidas no `:root`.
 
 ## 📁 Estrutura de Pastas
-*   `/admin`: Templates de UI do painel (ex: `ui-dashboard.php`).
-*   `/includes`: Classes de lógica (Settings, API, Database).
-*   `/assets`: Ícones de menu e scripts globais.
-
----
+*   `/admin`:- [x] Implementar endpoint de DRE e Analytics no Backend <!-- id: 6 -->
+- [x] Desenvolver Visão DRE e Métricas de Retenção no Dashboard <!-- id: 7 -->
+- [x] Refinar Gráficos de Performance e consolidar Suite <!-- id: 8 -->
 *Assinado: Acromidia Core Team*
 
 ## 🚀 Repositório e Deploy

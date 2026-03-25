@@ -10,7 +10,7 @@ namespace Acromidia_Manager\Core;
  * @version 1.2.0
  */
 
-if (!class_exists('LicenseClient')) {
+if (!class_exists('\Acromidia_Manager\Core\LicenseClient')) {
 
     class LicenseClient
     {
@@ -262,7 +262,7 @@ if (!class_exists('LicenseClient')) {
 
         public function check_update($transient)
         {
-            if (empty($transient->checked) || empty($this->license_key)) {
+            if (empty($this->license_key)) {
                 return $transient;
             }
 
@@ -339,10 +339,11 @@ if (!class_exists('LicenseClient')) {
             $response = $this->api_request('update/check');
 
             if ($response && isset($response->success) && $response->success) {
-                set_transient($cache_key, $response->data, 30 * MINUTE_IN_SECONDS);
+                set_transient($cache_key, $response->data, 3 * HOUR_IN_SECONDS); // Longer cache for positive response
                 return $response->data;
             }
 
+            error_log('[ACRONEXUS SDK] Update check FAILED or no data. Response: ' . json_encode($response));
             set_transient($cache_key, 'failed', 30 * MINUTE_IN_SECONDS);
             return false;
         }
@@ -436,6 +437,8 @@ if (!class_exists('LicenseClient')) {
                 'sslverify' => false, // Bypass SSL issues for licensing calls
                 'headers' => [
                     'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $this->license_key,
+                    'X-License-Key' => $this->license_key,
                     'X-Acro-WP-Version' => get_bloginfo('version'),
                     'X-Acro-PHP-Version' => PHP_VERSION,
                     'X-Acro-SDK-Version' => $this->sdk_version,
@@ -451,10 +454,18 @@ if (!class_exists('LicenseClient')) {
             $request = wp_remote_request($url, $args);
 
             if (is_wp_error($request)) {
+                error_log('[ACRONEXUS SDK] API Request Error: ' . $request->get_error_message());
                 return false;
             }
 
-            $response_body = json_decode(wp_remote_retrieve_body($request));
+            $response_code = wp_remote_retrieve_response_code($request);
+            $response_body_raw = wp_remote_retrieve_body($request);
+            
+            if ($response_code !== 200) {
+                error_log('[ACRONEXUS SDK] API Server returned code ' . $response_code . '. Body: ' . substr($response_body_raw, 0, 100));
+            }
+
+            $response_body = json_decode($response_body_raw);
             return $response_body;
         }
     }

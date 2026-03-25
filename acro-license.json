@@ -2,5 +2,5 @@
     "name": "Acro Manager",
     "slug": "acromidia-manager",
     "server_url": "https://acromidia.com/wp-json/acrolicense/v1/",
-    "version": "4.0.1"
+    "version": "4.0.2"
 }

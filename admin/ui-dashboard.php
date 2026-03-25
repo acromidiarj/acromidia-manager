@@ -16,17 +16,22 @@ $gateways_map = [
     'pagbank'     => 'PagBank'
 ];
 $gateway_label = $gateways_map[$primary_id] ?? 'Gateway';
+
+// Branding Dinâmico
+$custom_logo    = \Acromidia_Settings::get( 'dashboard_logo' );
+$primary_color  = \Acromidia_Settings::get( 'primary_color' ) ?: '#4f46e5';
 ?>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
 
 <style>
 /* ══ DESIGN SYSTEM ACRO MANAGER — V3.2 (FIX SYNC) ══ */
 :root {
-  --acro-primary: #4f46e5;
+  --acro-primary: <?php echo esc_attr($primary_color); ?>;
   --acro-bg: #f8fafc;
   --acro-text: #0f172a;
   --acro-slate: #64748b;
@@ -94,6 +99,20 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
 /* ── BADGES ── */
 .badge { padding: 4px 12px; border-radius: 10px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
 .badge-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+/* TINYMCE CUSTOMIZATION */
+.tox-tinymce { border-radius: 20px !important; border-color: #f1f5f9 !important; box-shadow: none !important; }
+.tox-editor-header { 
+    position: sticky !important; 
+    top: -30px !important; /* Compensa o padding do modal para "subir" mais */
+    z-index: 100 !important; 
+    background: #f8fafc !important; 
+    border-bottom: 2px solid #f1f5f9 !important; 
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05) !important;
+}
+.tox .tox-menubar { display: none !important; }
+.tox .tox-toolbar-overlord { background: transparent !important; }
+.tox .tox-edit-area__iframe { background: #fff !important; }
 .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
 .badge-danger { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; }
 .badge-info { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
@@ -112,8 +131,12 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
   <header class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 px-8 py-4">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <div class="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden" style="background-color: var(--acro-primary);">
+           <?php if ( $custom_logo ) : ?>
+               <img src="<?php echo esc_url($custom_logo); ?>" class="w-full h-full object-contain p-1">
+           <?php else : ?>
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+           <?php endif; ?>
         </div>
         <div>
           <h1 class="font-black text-slate-900 leading-none text-xl">Acro Manager</h1>
@@ -255,7 +278,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                        </div>
 
                        <!-- PROJEÇÃO DE CAIXA -->
-                       <div class="bg-slate-900 p-6 rounded-3xl shadow-xl shadow-slate-200 flex flex-col items-center justify-center border border-slate-700/50">
+                       <div class="bg-slate-900 p-6 rounded-3xl shadow-xl shadow-slate-200 flex flex-col items-center justify-center border border-slate-700/50" style="background: #0f172a !important;">
                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1.5 flex items-center gap-1"><i data-lucide="trending-up" class="w-2.5 h-2.5"></i> Projeção de Caixa</p>
                             <p class="text-xl font-black text-white whitespace-nowrap tracking-tight">
                                 <span class="text-xs font-bold opacity-50 mr-0.5">R$</span> {{ formatMoney(projectedEndBalance) }}
@@ -320,7 +343,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                       </div>
 
                       <button @click="view='docs'" class="w-full py-3.5 px-6 bg-slate-900 text-white text-[10px] font-black rounded-xl shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all uppercase tracking-widest mt-6 flex items-center justify-center gap-2 active:scale-95">
-                          <i data-lucide="plus-circle" class="w-4 h-4 text-white"></i> Criar Proposta
+                          <i data-lucide="plus-circle" class="w-4 h-4 text-white"></i> Novo Documento
                       </button>
                   </div>
               </div>
@@ -334,6 +357,34 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
             <h2 class="text-4xl font-black text-slate-900 tracking-tighter">Desempenho e Logs</h2>
             <p class="text-slate-500 font-medium mt-1">Crescimento projetado de MRR e auditoria de comunicação automatizada (WhatsApp).</p>
         </header>
+
+        <!-- META DE MRR (ELITE) -->
+        <div v-if="dreData.metrics.mrr_goal > 0" class="card-glass p-8 mb-12 bg-gradient-to-r from-slate-900 to-indigo-900 border-none shadow-2xl overflow-hidden relative" style="background: linear-gradient(to right, #0f172a, #312e81) !important; border:none !important">
+            <i data-lucide="target" class="absolute -right-10 -bottom-10 w-64 h-64 text-white/5 rotate-12"></i>
+            <div class="relative z-10">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div>
+                        <span class="text-[10px] font-black uppercase text-indigo-300 tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/10">Objetivo Estratégico</span>
+                        <h2 class="text-3xl font-black text-white tracking-tighter mt-4">Meta de MRR Mensal</h2>
+                        <p class="text-indigo-200/60 font-bold text-sm">Acompanhamento de crescimento recorrente em tempo real.</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-black uppercase text-indigo-300 tracking-widest text-indigo-300/60">Até agora</p>
+                        <p class="text-4xl font-black text-white tracking-tighter mt-1">R$ {{ formatMoney(mrrAtivo) }} <span class="text-indigo-400 text-xl">/ R$ {{ formatMoney(dreData.metrics.mrr_goal) }}</span></p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-end">
+                        <span class="text-sm font-black text-white uppercase tracking-widest">Progresso: {{ Math.min(100, Math.round((mrrAtivo / dreData.metrics.mrr_goal) * 100)) }}%</span>
+                        <span v-if="mrrAtivo < dreData.metrics.mrr_goal" class="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Faltam R$ {{ formatMoney(dreData.metrics.mrr_goal - mrrAtivo) }} para bater a meta</span>
+                        <span v-else class="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="party-popper" class="w-4 h-4"></i> Meta Batida! Parabéns!</span>
+                    </div>
+                    <div class="h-4 bg-white/10 rounded-full overflow-hidden p-1 border border-white/10">
+                        <div class="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 rounded-full transition-all duration-1000" :style="{ width: Math.min(100, (mrrAtivo / dreData.metrics.mrr_goal) * 100) + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <!-- INTELIGÊNCIA GERENCIAL -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -394,6 +445,110 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                 <h3 class="text-3xl font-black text-slate-900 tracking-tighter">R$ {{ formatMoney(mrrRisco) }}</h3>
                 <p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-widest leading-tight">Valor retido em<br>inadimplência</p>
             </div>
+
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <!-- CHURN RATE -->
+            <div class="card-glass p-6 border-b-4 border-amber-500 bg-gradient-to-br from-white to-amber-50">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[10px] font-black uppercase text-amber-600 tracking-widest">Taxa de Churn</span>
+                    <i data-lucide="user-minus" class="w-5 h-5 text-amber-500"></i>
+                </div>
+                <h3 class="text-3xl font-black text-slate-900 tracking-tighter">{{ dreData.metrics.churn_rate }}%</h3>
+                <p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-widest leading-tight">Representa {{ dreData.metrics.lost }} clientes<br>perdidos no período</p>
+            </div>
+
+            <!-- CICLO DE VENDAS -->
+            <div class="card-glass p-6 border-b-4 border-sky-500 bg-gradient-to-br from-white to-sky-50">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[10px] font-black uppercase text-sky-600 tracking-widest">Ciclo de Vendas</span>
+                    <i data-lucide="calendar" class="w-5 h-5 text-sky-500"></i>
+                </div>
+                <h3 class="text-3xl font-black text-slate-900 tracking-tighter">{{ dreData.metrics.sales_cycle }} d</h3>
+                <p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-widest leading-tight">Média de dias para<br>fechar contrato</p>
+            </div>
+
+            <!-- TAXA DE RECUPERAÇÃO -->
+            <div class="card-glass p-6 border-b-4 border-emerald-600 bg-emerald-900/5">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[10px] font-black uppercase text-emerald-700 tracking-widest">Sucesso de Cobrança</span>
+                    <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600"></i>
+                </div>
+                <h3 class="text-3xl font-black text-emerald-900 tracking-tighter">{{ dreData.metrics.recovery_rate }}%</h3>
+                <p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-widest leading-tight">Clientes recuperados<br>pela automação</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- DRE SIMPLIFICADA -->
+            <div class="lg:col-span-2 card-glass p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h3 class="input-label !mb-0 text-slate-900">DRE Simplificada (6 Meses)</h3>
+                        <p class="text-[11px] text-slate-400 font-bold mt-1 uppercase tracking-widest">Consolidação de Receitas vs Despesas</p>
+                    </div>
+                    <button @click="exportToCSV(dreData.history, 'dre-acro-manager.csv', ['month', 'income', 'expense', 'profit'])" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
+                        <i data-lucide="download" class="w-4 h-4"></i> Exportar CSV
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b">
+                            <tr>
+                                <th class="px-5 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Mês</th>
+                                <th class="px-5 py-4 text-[10px] font-black uppercase text-emerald-500 tracking-widest text-right">Receitas</th>
+                                <th class="px-5 py-4 text-[10px] font-black uppercase text-rose-500 tracking-widest text-right">Despesas</th>
+                                <th class="px-5 py-4 text-[10px] font-black uppercase text-slate-900 tracking-widest text-right">Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr v-for="m in dreData.history" :key="m.month" class="hover:bg-slate-50/50 transition-all">
+                                <td class="px-5 py-4 text-xs font-black text-slate-600 uppercase tracking-tighter">{{ m.month }}</td>
+                                <td class="px-5 py-4 text-sm font-bold text-emerald-600 text-right">R$ {{ formatMoney(m.income) }}</td>
+                                <td class="px-5 py-4 text-sm font-bold text-rose-600 text-right">R$ {{ formatMoney(m.expense) }}</td>
+                                <td class="px-5 py-4 text-sm font-black text-right" :class="m.profit >= 0 ? 'text-indigo-600' : 'text-rose-500'">R$ {{ formatMoney(m.profit) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ANALYTICS DE VALOR -->
+            <div class="card-glass p-8 flex flex-col justify-between">
+                <div>
+                    <h3 class="input-label mb-8 flex items-center gap-2"><i data-lucide="gem" class="w-4 h-4 text-indigo-500"></i> Vitalidade do Negócio</h3>
+                    
+                    <div class="space-y-8">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Lifetime Value (LTV)</p>
+                            <p class="text-4xl font-black text-indigo-600 tracking-tighter">R$ {{ formatMoney(dreData.metrics.ltv) }}</p>
+                            <p class="text-[9px] text-slate-400 font-bold mt-2 leading-relaxed">Estimativa de receita por cliente<br>baseada em um ciclo de 12 meses.</p>
+                        </div>
+                        
+                        <div class="pt-8 border-t border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ticket Médio (ARPU)</p>
+                            <p class="text-3xl font-black text-slate-900 tracking-tighter">R$ {{ formatMoney(dreData.metrics.avg_mrr) }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 bg-indigo-50 p-6 rounded-3xl border border-indigo-100">
+                    <p class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3">Base Atual</p>
+                    <div class="flex justify-between items-end">
+                        <div class="text-center">
+                            <p class="text-2xl font-black text-indigo-900">{{ dreData.metrics.active }}</p>
+                            <p class="text-[8px] text-indigo-400 font-bold uppercase tracking-widest mt-1">Ativos</p>
+                        </div>
+                        <div class="w-px h-10 bg-indigo-200"></div>
+                        <div class="text-center">
+                            <p class="text-2xl font-black text-slate-400">{{ dreData.metrics.lost }}</p>
+                            <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-1">Lost</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
@@ -427,16 +582,26 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                 </div>
             </div>
         </div>
+
+        <div class="card-glass p-8 mb-12">
+            <h3 class="input-label mb-6">Comparativo Histórico: Receitas vs Despesas</h3>
+            <div class="h-[300px] w-full relative">
+                <canvas id="dreChart"></canvas>
+            </div>
+        </div>
         
         <!-- Logs de Cobrança -->
         <div class="card-glass overflow-hidden shadow-2xl shadow-indigo-100/10">
             <div class="px-8 py-6 bg-slate-50/50 border-b flex justify-between items-center">
                 <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"><i data-lucide="message-square" class="w-4 h-4 text-emerald-500"></i> Auditoria de Disparos WhatsApp</h3>
+                <button v-if="logs.length > 5" @click="showAllLogs = !showAllLogs" class="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-800 transition-colors">
+                    {{ showAllLogs ? 'Ver Menos -' : 'Ver Todos +' }}
+                </button>
             </div>
             <div v-if="loadingLogs" class="p-16 text-center text-slate-400"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-indigo-600 mb-4"></i></div>
             <div v-else-if="!logs.length" class="p-16 text-center text-slate-400 font-black text-xs uppercase tracking-widest">Nenhuma mensagem disparada recentemente.</div>
             <div v-else class="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
-                <div v-for="log in logs" :key="log.id" class="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between hover:bg-slate-50/80 transition-all gap-4">
+                <div v-for="log in (showAllLogs ? logs : logs.slice(0, 5))" :key="log.id" class="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between hover:bg-slate-50/80 transition-all gap-4">
                     <div class="flex items-center gap-5">
                         <div class="w-12 h-12 rounded-full flex items-center justify-center shadow-sm" :class="log.title.includes('[SUCESSO]')?'bg-emerald-100 text-emerald-600':'bg-rose-100 text-rose-600'">
                             <i :data-lucide="log.title.includes('[SUCESSO]')?'check':'x'" class="w-5 h-5"></i>
@@ -447,6 +612,114 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                         </div>
                     </div>
                     <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest whitespace-nowrap">{{ log.date }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLIENTS VIEW -->
+    <div v-if="view==='clients'">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <div>
+                <h2 class="text-4xl font-black text-slate-900 tracking-tighter">Carteira de Clientes</h2>
+                <p class="text-slate-500 font-bold mt-2 text-sm leading-relaxed">Gerenciamento centralizado de MRR, contratos e domínios.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button @click="exportToCSV(filteredClients, 'clientes-acro-manager.csv', ['name', 'email', 'phone', 'mrr', 'status', 'site_url'])" class="p-4 bg-white hover:bg-slate-50 text-slate-400 hover:text-indigo-600 transition-all rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 text-[10px] font-black uppercase tracking-widest">
+                    <i data-lucide="download" class="w-4 h-4"></i> Exportar
+                </button>
+            </div>
+        </div>
+        <header class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-8">
+            <div class="flex flex-col gap-5">
+                <div class="flex flex-wrap items-center gap-3">
+                    <h2 class="text-4xl font-black text-slate-900 tracking-tighter">Monitoramento</h2>
+                    
+                    <button v-if="waOk && overdueCount > 0" @click="massBillOverdue" :disabled="massBilling" class="btn-primary !bg-rose-500 hover:!bg-rose-600 !py-2 !px-4 !text-[11px] !shadow-lg shadow-rose-200 ml-2">
+                        <i data-lucide="send" class="w-4 h-4" :class="{'animate-pulse': massBilling}"></i> {{ massBilling ? 'Enviando Avisos...' : 'Cobrar Inadimplentes ('+overdueCount+')' }}
+                    </button>
+                </div>
+                
+                <div class="flex gap-2.5 items-center">
+                    <button @click="filterStatus='todos'" :class="filterStatus==='todos'?'bg-slate-800 text-white shadow-md':'bg-slate-100 text-slate-500 hover:bg-slate-200'" class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Todos</button>
+                    <button @click="filterStatus='ativo'" :class="filterStatus==='ativo'?'bg-emerald-500 text-white shadow-md shadow-emerald-200':'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'" class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Em Dia</button>
+                    <button @click="filterStatus='inadimplente'" :class="filterStatus==='inadimplente'?'bg-rose-500 text-white shadow-md shadow-rose-200':'bg-rose-50 text-rose-600 hover:bg-rose-100'" class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
+                        Devedores
+                        <span v-if="overdueCount>0" class="bg-rose-600 text-white rounded-full px-2 py-0.5 text-[9px]">{{overdueCount}}</span>
+                    </button>
+                    
+                    <div v-if="syncingStatus" class="ml-2 flex items-center gap-1.5 text-[9px] font-black uppercase text-slate-400 tracking-widest bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-full shadow-sm"><i data-lucide="loader-2" class="w-3 h-3 animate-spin text-indigo-500"></i> Auto-Sync...</div>
+                </div>
+            </div>
+            
+            <div class="relative w-full md:w-80 flex items-center">
+                <i data-lucide="search" class="input-icon"></i>
+                <input v-model="search" type="text" placeholder="Localizar por nome..." class="modern-input !pr-10">
+                <button v-show="search" @click="search=''" class="absolute right-3 text-slate-400 hover:text-rose-500 transition-colors p-1" title="Limpar busca"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+        </header>
+
+        <div class="card-glass overflow-hidden shadow-2xl shadow-indigo-100/10">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 border-b">
+                    <tr>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Cliente</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Situação</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Recorrência</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] text-center">Gestão</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr v-for="c in filteredClients" :key="c.id" :class="c.status==='inadimplente' ? 'bg-rose-50/20 hover:bg-rose-50/50 transition-all' : 'hover:bg-indigo-50/20 transition-all'">
+                        <td class="px-8 py-6 relative">
+                            <div v-if="c.status==='inadimplente'" class="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]"></div>
+                            <p class="font-black text-slate-900">{{ c.name }}</p>
+                            <div class="flex flex-col gap-1.5 mt-1.5">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1.5"><i data-lucide="phone" class="w-3 h-3 text-slate-300"></i>{{ formatPhone(c.phone) || 'S/ TELEFONE' }}</p>
+                                <p v-if="c.product" class="text-[9px] uppercase tracking-widest text-indigo-500 font-black bg-indigo-50 border border-indigo-100 py-0.5 px-2 rounded-lg w-max"><i data-lucide="tag" class="w-2.5 h-2.5 inline-block mr-1 align-text-bottom"></i>{{ c.product }}</p>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <span :class="c.status==='ativo'?'badge-success':'badge-warning'" class="badge">{{ c.status==='ativo'?'ATUALIZADO':'EM ATRASO' }}</span>
+                        </td>
+                        <td class="px-8 py-6 font-black text-slate-900 text-lg">R$ {{ formatMoney(c.mrr) }}</td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-wrap justify-end xl:justify-center gap-2">
+                                <button v-if="c.site_status === 'blocked'" @click="toggleBlock(c)" class="p-2.5 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all shadow-sm flex items-center justify-center shrink-0" title="Desbloquear Site Manualmente"><i data-lucide="lock" class="w-4 h-4"></i></button>
+                                <button v-else @click="toggleBlock(c)" class="p-2.5 rounded-xl border-2 border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-all flex items-center justify-center shrink-0" title="Bloquear Site Imediatamente"><i data-lucide="unlock" class="w-4 h-4"></i></button>
+
+                                <button @click="openInvoicesModal(c)" class="p-2.5 rounded-xl border-2 border-sky-100 text-sky-600 hover:bg-sky-50 transition-all flex items-center justify-center shrink-0" title="Faturas Asaas"><i data-lucide="file-text" class="w-4 h-4"></i></button>
+
+                                <!-- WhatsApp Group -->
+                                <div class="relative group flex items-center shrink-0">
+                                    <button @click="sendWhatsApp($event, c, 'manual')" class="p-2.5 rounded-xl border-2 border-emerald-100 text-emerald-600 hover:bg-emerald-50 transition-all flex items-center justify-center" title="Cobrança Padrão"><i data-lucide="message-circle" class="w-4 h-4"></i></button>
+                                    <!-- Dropdown Menu -->
+                                    <div class="absolute right-full mr-4 top-1/2 -translate-y-1/2 hidden group-hover:flex flex-col gap-1 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] p-2 rounded-2xl border border-slate-200 z-[100] min-w-[180px] animate-in fade-in slide-in-from-right-2 duration-200">
+                                        <button @click.prevent="sendWhatsApp($event, c, '5_days_before')" class="text-[10px] font-black text-slate-500 hover:text-indigo-600 text-left px-3 py-2 uppercase hover:bg-indigo-50 rounded-xl transition-colors whitespace-nowrap truncate"><i data-lucide="clock" class="w-3 h-3 inline-block mb-0.5 opacity-50 mr-1"></i> Lembrete Preventivo</button>
+                                        <button @click.prevent="sendWhatsApp($event, c, '7_days_after')" class="text-[10px] font-black text-rose-500 hover:text-rose-600 text-left px-3 py-2 uppercase hover:bg-rose-50 rounded-xl transition-colors whitespace-nowrap truncate"><i data-lucide="alert-triangle" class="w-3 h-3 inline-block mb-0.5 opacity-50 mr-1"></i> Aviso (Atrasado 7 Dias)</button>
+                                        <button @click.prevent="sendWhatsApp($event, c, '15_days_after')" class="text-[10px] font-black text-rose-700 hover:text-rose-800 text-left px-3 py-2 uppercase hover:bg-rose-100 rounded-xl transition-colors whitespace-nowrap truncate"><i data-lucide="ban" class="w-3 h-3 inline-block mb-0.5 opacity-50 mr-1"></i> Ameaça (15 Dias)</button>
+                                    </div>
+                                </div>
+
+                                <button @click="syncAsaas($event, c)" class="p-2.5 rounded-xl border-2 border-indigo-100 text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center shrink-0" title="Sincronizar Asaas"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                                <a :href="c.portal_url" target="_blank" class="p-2.5 rounded-xl border-2 border-slate-900 bg-slate-900 text-white hover:bg-slate-800 transition-all flex items-center justify-center shrink-0" title="Ver Portal do Cliente (Link Seguro)"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+                                <button @click="openEditModal(c)" class="p-2.5 rounded-xl border-2 border-blue-100 text-blue-600 hover:bg-blue-50 transition-all flex items-center justify-center shrink-0" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                <button @click="deleteTarget=c" class="p-2.5 rounded-xl border-2 border-rose-100 text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center shrink-0" title="Remover"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div v-if="totalPages > 1" class="px-8 py-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Página {{ currentPage }} de {{ totalPages }} • {{ totalFiltered }} Clientes</span>
+                <div class="flex items-center gap-2">
+                    <button @click="currentPage--" :disabled="currentPage === 1" class="w-8 h-8 flex items-center justify-center border border-slate-200 bg-white rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-slate-600"></i>
+                    </button>
+                    <button @click="currentPage++" :disabled="currentPage === totalPages" class="w-8 h-8 flex items-center justify-center border border-slate-200 bg-white rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -631,7 +904,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                 <p class="text-slate-500 font-medium mt-1">Feche mais negócios com orçamentos profissionais e links compartilháveis.</p>
             </div>
             <button @click="openDocModal" class="btn-primary">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i> Criar Proposta
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Novo Documento
             </button>
         </header>
 
@@ -687,10 +960,12 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex items-center justify-center gap-3">
-                                <button v-if="doc.status !== 'aceito'" @click="acceptDocument(doc)" class="p-2.5 rounded-xl border-2 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm flex items-center justify-center" title="Aceitar Orçamento"><i data-lucide="check-circle" class="w-4 h-4"></i></button>
-                                <button v-else @click="revertDocument(doc)" class="p-2.5 rounded-xl border-2 border-amber-100 text-amber-600 hover:bg-amber-600 hover:text-white transition-all shadow-sm flex items-center justify-center" title="Reverter para Pendente"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
-                                <button @click="openDocEditModal(doc)" class="p-2.5 rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-all shadow-sm flex items-center justify-center" title="Editar Proposta"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                <button @click="printProposal(doc)" class="p-2.5 rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm flex items-center justify-center" title="Imprimir Proposta"><i data-lucide="printer" class="w-4 h-4"></i></button>
+                                <button v-if="doc.status !== 'aceito'" @click="acceptDocument(doc)" class="p-2.5 rounded-xl border-2 border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm flex items-center justify-center" :title="doc.type === 'contrato' ? 'Aceitar Contrato' : 'Aceitar Orçamento'"><i data-lucide="check-circle" class="w-4 h-4"></i></button>
+                                <button v-else class="p-2.5 rounded-xl border-2 border-slate-100 text-slate-300 cursor-not-allowed flex items-center justify-center" title="Documento Finalizado e Aceito"><i data-lucide="lock" class="w-4 h-4"></i></button>
+                                <button v-if="doc.status !== 'aceito'" @click="openDocEditModal(doc)" class="p-2.5 rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-all shadow-sm flex items-center justify-center" :title="doc.type === 'contrato' ? 'Editar Contrato' : 'Editar Proposta'"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                <a v-if="doc.public_url" :href="doc.public_url" target="_blank" class="p-2.5 rounded-xl border-2 border-indigo-100 text-indigo-600 hover:bg-indigo-50 transition-all shadow-sm flex items-center justify-center" title="Visualizar Link Público"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+                                <button v-if="doc.public_url" @click="copyDocLink(doc)" class="p-2.5 rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-all shadow-sm flex items-center justify-center" title="Copiar Link"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                                <button @click="printProposal(doc)" class="p-2.5 rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm flex items-center justify-center" :title="doc.type === 'contrato' ? 'Imprimir Contrato' : 'Imprimir Orçamento'"><i data-lucide="printer" class="w-4 h-4"></i></button>
                                 <button @click="sendDocWhatsApp(doc)" class="p-2.5 rounded-xl border-2 border-emerald-100 text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm flex items-center justify-center" title="Enviar WhatsApp"><i data-lucide="message-circle" class="w-4 h-4"></i></button>
                                 <button @click="handleDeleteDoc(doc.id)" class="p-2.5 text-slate-300 hover:text-rose-500 transition-colors pointer-cursor"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
@@ -770,100 +1045,6 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
             </div>
         </div>
     </div>
-    <div v-if="view==='clients'">
-        <header class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-8">
-            <div class="flex flex-col gap-5">
-                <div class="flex flex-wrap items-center gap-3">
-                    <h2 class="text-4xl font-black text-slate-900 tracking-tighter">Monitoramento</h2>
-                    
-                    <button v-if="waOk && overdueCount > 0" @click="massBillOverdue" :disabled="massBilling" class="btn-primary !bg-rose-500 hover:!bg-rose-600 !py-2 !px-4 !text-[11px] !shadow-lg shadow-rose-200 ml-2">
-                        <i data-lucide="send" class="w-4 h-4" :class="{'animate-pulse': massBilling}"></i> {{ massBilling ? 'Enviando Avisos...' : 'Cobrar Inadimplentes ('+overdueCount+')' }}
-                    </button>
-                </div>
-                
-                <div class="flex gap-2.5 items-center">
-                    <button @click="filterStatus='todos'" :class="filterStatus==='todos'?'bg-slate-800 text-white shadow-md':'bg-slate-100 text-slate-500 hover:bg-slate-200'" class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Todos</button>
-                    <button @click="filterStatus='ativo'" :class="filterStatus==='ativo'?'bg-emerald-500 text-white shadow-md shadow-emerald-200':'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'" class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Em Dia</button>
-                    <button @click="filterStatus='inadimplente'" :class="filterStatus==='inadimplente'?'bg-rose-500 text-white shadow-md shadow-rose-200':'bg-rose-50 text-rose-600 hover:bg-rose-100'" class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
-                        Devedores
-                        <span v-if="overdueCount>0" class="bg-rose-600 text-white rounded-full px-2 py-0.5 text-[9px]">{{overdueCount}}</span>
-                    </button>
-                    
-                    <div v-if="syncingStatus" class="ml-2 flex items-center gap-1.5 text-[9px] font-black uppercase text-slate-400 tracking-widest bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-full shadow-sm"><i data-lucide="loader-2" class="w-3 h-3 animate-spin text-indigo-500"></i> Auto-Sync...</div>
-                </div>
-            </div>
-            
-            <div class="relative w-full md:w-80 flex items-center">
-                <i data-lucide="search" class="input-icon"></i>
-                <input v-model="search" type="text" placeholder="Localizar por nome..." class="modern-input !pr-10">
-                <button v-show="search" @click="search=''" class="absolute right-3 text-slate-400 hover:text-rose-500 transition-colors p-1" title="Limpar busca"><i data-lucide="x" class="w-4 h-4"></i></button>
-            </div>
-        </header>
-
-        <div class="card-glass overflow-hidden shadow-2xl shadow-indigo-100/10">
-            <table class="w-full text-left">
-                <thead class="bg-slate-50 border-b">
-                    <tr>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Cliente</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Situação</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Recorrência</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] text-center">Gestão</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    <tr v-for="c in filteredClients" :key="c.id" :class="c.status==='inadimplente' ? 'bg-rose-50/20 hover:bg-rose-50/50 transition-all' : 'hover:bg-indigo-50/20 transition-all'">
-                        <td class="px-8 py-6 relative">
-                            <div v-if="c.status==='inadimplente'" class="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]"></div>
-                            <p class="font-black text-slate-900">{{ c.name }}</p>
-                            <div class="flex flex-col gap-1.5 mt-1.5">
-                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1.5"><i data-lucide="phone" class="w-3 h-3 text-slate-300"></i>{{ formatPhone(c.phone) || 'S/ TELEFONE' }}</p>
-                                <p v-if="c.product" class="text-[9px] uppercase tracking-widest text-indigo-500 font-black bg-indigo-50 border border-indigo-100 py-0.5 px-2 rounded-lg w-max"><i data-lucide="tag" class="w-2.5 h-2.5 inline-block mr-1 align-text-bottom"></i>{{ c.product }}</p>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6">
-                            <span :class="c.status==='ativo'?'badge-success':'badge-warning'" class="badge">{{ c.status==='ativo'?'ATUALIZADO':'EM ATRASO' }}</span>
-                        </td>
-                        <td class="px-8 py-6 font-black text-slate-900 text-lg">R$ {{ formatMoney(c.mrr) }}</td>
-                        <td class="px-8 py-6">
-                            <div class="flex flex-wrap justify-end xl:justify-center gap-2">
-                                <button v-if="c.site_status === 'blocked'" @click="toggleBlock(c)" class="p-2.5 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all shadow-sm flex items-center justify-center shrink-0" title="Desbloquear Site Manualmente"><i data-lucide="lock" class="w-4 h-4"></i></button>
-                                <button v-else @click="toggleBlock(c)" class="p-2.5 rounded-xl border-2 border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-all flex items-center justify-center shrink-0" title="Bloquear Site Imediatamente"><i data-lucide="unlock" class="w-4 h-4"></i></button>
-
-                                <button @click="openInvoicesModal(c)" class="p-2.5 rounded-xl border-2 border-sky-100 text-sky-600 hover:bg-sky-50 transition-all flex items-center justify-center shrink-0" title="Faturas Asaas"><i data-lucide="file-text" class="w-4 h-4"></i></button>
-
-                                <!-- WhatsApp Group -->
-                                <div class="relative group flex items-center shrink-0">
-                                    <button @click="sendWhatsApp($event, c, 'manual')" class="p-2.5 rounded-xl border-2 border-emerald-100 text-emerald-600 hover:bg-emerald-50 transition-all flex items-center justify-center" title="Cobrança Padrão"><i data-lucide="message-circle" class="w-4 h-4"></i></button>
-                                    <!-- Dropdown Menu -->
-                                    <div class="absolute right-full mr-4 top-1/2 -translate-y-1/2 hidden group-hover:flex flex-col gap-1 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] p-2 rounded-2xl border border-slate-200 z-[100] min-w-[180px] animate-in fade-in slide-in-from-right-2 duration-200">
-                                        <button @click.prevent="sendWhatsApp($event, c, '5_days_before')" class="text-[10px] font-black text-slate-500 hover:text-indigo-600 text-left px-3 py-2 uppercase hover:bg-indigo-50 rounded-xl transition-colors whitespace-nowrap truncate"><i data-lucide="clock" class="w-3 h-3 inline-block mb-0.5 opacity-50 mr-1"></i> Lembrete Preventivo</button>
-                                        <button @click.prevent="sendWhatsApp($event, c, '7_days_after')" class="text-[10px] font-black text-rose-500 hover:text-rose-600 text-left px-3 py-2 uppercase hover:bg-rose-50 rounded-xl transition-colors whitespace-nowrap truncate"><i data-lucide="alert-triangle" class="w-3 h-3 inline-block mb-0.5 opacity-50 mr-1"></i> Aviso (Atrasado 7 Dias)</button>
-                                        <button @click.prevent="sendWhatsApp($event, c, '15_days_after')" class="text-[10px] font-black text-rose-700 hover:text-rose-800 text-left px-3 py-2 uppercase hover:bg-rose-100 rounded-xl transition-colors whitespace-nowrap truncate"><i data-lucide="ban" class="w-3 h-3 inline-block mb-0.5 opacity-50 mr-1"></i> Ameaça (15 Dias)</button>
-                                    </div>
-                                </div>
-
-                                <button @click="syncAsaas($event, c)" class="p-2.5 rounded-xl border-2 border-indigo-100 text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center shrink-0" title="Sincronizar Asaas"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
-                                <button @click="openEditModal(c)" class="p-2.5 rounded-xl border-2 border-blue-100 text-blue-600 hover:bg-blue-50 transition-all flex items-center justify-center shrink-0" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                                <button @click="deleteTarget=c" class="p-2.5 rounded-xl border-2 border-rose-100 text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center shrink-0" title="Remover"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <div v-if="totalPages > 1" class="px-8 py-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Página {{ currentPage }} de {{ totalPages }} • {{ totalFiltered }} Clientes</span>
-                <div class="flex items-center gap-2">
-                    <button @click="currentPage--" :disabled="currentPage === 1" class="w-8 h-8 flex items-center justify-center border border-slate-200 bg-white rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
-                        <i data-lucide="chevron-left" class="w-4 h-4 text-slate-600"></i>
-                    </button>
-                    <button @click="currentPage++" :disabled="currentPage === totalPages" class="w-8 h-8 flex items-center justify-center border border-slate-200 bg-white rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- ══ CRM PIPELINE ══ -->
     <div v-if="view==='crm'" class="h-full flex flex-col pb-10">
@@ -907,6 +1088,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                                 <p class="font-black text-sm text-slate-900 truncate leading-tight mt-0.5">{{ c.name }}</p>
                                 <p v-if="c.product" class="text-[8px] uppercase tracking-widest text-indigo-500 font-black bg-indigo-50 border border-indigo-100 py-0.5 px-1.5 rounded-md mt-1 mb-1 w-max max-w-[130px] truncate"><i data-lucide="tag" class="w-2 h-2 inline-block mr-0.5 align-text-bottom"></i>{{ c.product }}</p>
                                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate mt-0.5 flex items-center gap-1" v-if="c.site_url"><i data-lucide="globe" class="w-2.5 h-2.5"></i>{{ c.site_url }}</p>
+                                <p v-if="c.notes" class="text-[10px] text-slate-400 italic mt-2 line-clamp-2 border-l-2 border-indigo-100 pl-2 leading-relaxed">{{ c.notes }}</p>
                             </div>
                         </div>
                         
@@ -962,7 +1144,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                             <label class="input-label">Domínio Oficial do Cliente</label>
                             <div class="relative">
                                 <i data-lucide="globe" class="input-icon"></i>
-                                <input v-model="form.site_url" type="text" class="modern-input" placeholder="ex: cliente.com.br" :disabled="!editTarget" :class="{'opacity-50 cursor-not-allowed': !editTarget}">
+                                <input v-model="form.site_url" type="text" class="modern-input" placeholder="ex: cliente.com.br">
                             </div>
                         </div>
                     </div>
@@ -979,7 +1161,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                             <label class="input-label">Valor Estimado (MRR)</label>
                             <div class="relative">
                                 <div class="input-icon font-black text-[12px] text-slate-400">R$</div>
-                                <input :value="displayMRR" @input="handleMRRInput" type="text" class="modern-input" placeholder="R$ 0,00" :disabled="!editTarget" :class="{'opacity-50 cursor-not-allowed': !editTarget}">
+                                <input :value="displayMRR" @input="handleMRRInput" type="text" class="modern-input" placeholder="R$ 0,00">
                             </div>
                         </div>
                     </div>
@@ -991,15 +1173,19 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                                 <i data-lucide="tag" class="input-icon"></i>
                                 <input v-model="form.product" type="text" list="productList" class="modern-input !text-sm" placeholder="Ex: Site Institucional, Landing Page, Tráfego Pago...">
                                 <datalist id="productList">
-                                    <option value="Site Institucional">Site Institucional</option>
-                                    <option value="Landing Page">Landing Page</option>
-                                    <option value="Loja Virtual">Loja Virtual</option>
-                                    <option value="Tráfego Pago">Tráfego Pago</option>
-                                    <option value="Social Media">Social Media</option>
-                                    <option value="Identidade Visual">Identidade Visual</option>
-                                    <option value="Consultoria">Consultoria</option>
+                                    <option v-for="opt in productOptions" :key="opt" :value="opt">{{ opt }}</option>
                                 </datalist>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1">
+                    <div>
+                        <label class="input-label">Observações de Follow-up (CRM)</label>
+                        <div class="relative">
+                            <i data-lucide="message-square" class="input-icon !top-6"></i>
+                            <textarea v-model="form.notes" class="modern-input modern-textarea" placeholder="Anotações sobre a negociação, próximos passos ou detalhes técnicos..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -1234,16 +1420,16 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
             <header class="px-10 py-8 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                 <div class="flex items-center gap-6">
                     <div class="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100">
-                        <i :data-lucide="docForm.type==='orcamento'?'file-text':'scroll-text'" class="w-7 h-7"></i>
+                        <i :data-lucide="docForm.type==='orcamento'?'file-text':'pen-tool'" class="w-7 h-7"></i>
                     </div>
                     <div>
-                        <h3 class="text-3xl font-black text-slate-900 tracking-tighter">Gerar {{ docForm.type==='orcamento'?'Orçamento':'Contrato' }}</h3>
+                        <h3 class="text-3xl font-black text-slate-900 tracking-tighter">{{ docForm.type==='orcamento'?'Gerar Orçamento':'Redigir Contrato' }}</h3>
                         <p class="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Transforme negociações em documentos profissionais.</p>
                     </div>
                 </div>
                 <div class="flex bg-slate-100 p-1.5 rounded-2xl">
-                    <button type="button" @click="docForm.type='orcamento'" :class="docForm.type==='orcamento'?'bg-white shadow-sm text-indigo-600':'text-slate-500'" class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Orçamento</button>
-                    <button type="button" @click="docForm.type='contrato'" :class="docForm.type==='contrato'?'bg-white shadow-sm text-indigo-600':'text-slate-500'" class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Contrato</button>
+                    <button type="button" @click="docForm.type='orcamento'" :class="docForm.type==='orcamento'?'bg-white shadow-sm text-indigo-600 border-indigo-100':'text-slate-500 border-transparent'" class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2">Orçamento</button>
+                    <button type="button" @click="docForm.type='contrato'" :class="docForm.type==='contrato'?'bg-white shadow-sm text-indigo-600 border-indigo-100':'text-slate-500 border-transparent'" class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2">Contrato</button>
                 </div>
             </header>
             
@@ -1278,11 +1464,27 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                                     </button>
                                 </div>
                             </div>
+                            <!-- Novo Campo: Pessoa de Contato -->
+                            <div class="space-y-2">
+                                <label class="input-label ml-0">Aos cuidados de (Contato)</label>
+                                <div class="relative">
+                                    <i data-lucide="contact" class="input-icon"></i>
+                                    <input v-model="docForm.contact_name" type="text" class="modern-input" placeholder="Ex: João da Silva (CEO)">
+                                </div>
+                            </div>
+                            <!-- Novo Campo: Valor Total (Apenas para Contratos, já que não tem itens) -->
+                            <div v-if="docForm.type === 'contrato'" class="space-y-2">
+                                <label class="input-label ml-0">Valor Total do Contrato (R$)</label>
+                                <div class="relative">
+                                    <i data-lucide="banknote" class="input-icon"></i>
+                                    <input :value="docForm.manual_total > 0 ? formatMoney(docForm.manual_total) : ''" @input="handleDocManualTotalInput" type="text" class="modern-input" placeholder="0,00">
+                                </div>
+                            </div>
                         </div>
                     </section>
 
-                    <!-- Bloco B: Dinâmica de Itens -->
-                    <section class="space-y-6">
+                    <!-- Bloco B: Dinâmica de Itens (Apenas Orçamento) -->
+                    <section v-if="docForm.type === 'orcamento'" class="space-y-6">
                         <div class="flex items-center justify-between mb-4">
                             <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2"><span class="w-2 h-2 bg-indigo-500 rounded-full"></span> Serviços e Valores</h4>
                             <button @click="docForm.items.push({description:'', price:0})" class="text-[10px] font-black text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition-all uppercase tracking-widest flex items-center gap-2">
@@ -1306,18 +1508,31 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                         </div>
                     </section>
 
-                    <!-- Bloco C: Termos Jurídicos -->
-                    <section class="space-y-4">
-                        <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 mb-4"><span class="w-2 h-2 bg-indigo-500 rounded-full"></span> Notas e Cláusulas</h4>
+                          <!-- Bloco C: Redação Completa -->
+                    <section class="space-y-8">
+                        <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 mb-4"><span class="w-2 h-2 bg-indigo-500 rounded-full"></span> Redação do Documento</h4>
+                            <div class="space-y-2">
+                                <label class="input-label ml-0">Corpo do Trabalho / Detalhes do Contrato</label>
+                                <p class="text-[10px] text-slate-400 font-medium mb-4">Descreva aqui o escopo completo, obrigações e detalhes técnicos que aparecerão no documento final.</p>
+                                <div class="bg-white rounded-3xl border-2 border-slate-100 focus-within:border-indigo-400 transition-all shadow-sm overflow-hidden">
+                                    <textarea id="editor-content"></textarea>
+                                </div>
+                                <textarea v-model="docForm.content" class="hidden"></textarea>
+                            </div>
+                    </section>
+
+                    <!-- Bloco D: Notas e Cláusulas Curtas (Apenas Orçamento) -->
+                    <section v-if="docForm.type === 'orcamento'" class="space-y-8">
+                        <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 mb-4"><span class="w-2 h-2 bg-indigo-500 rounded-full"></span> Notas de Rodapé</h4>
                         <div class="relative">
                             <i data-lucide="shield-check" class="input-icon !top-6"></i>
-                            <textarea v-model="docForm.terms" class="modern-input modern-textarea" placeholder="Ex: Validade de 10 dias. Pagamento de 50% no início e 50% na entrega."></textarea>
+                            <textarea v-model="docForm.terms" class="modern-input min-h-[120px] py-6 pl-14" placeholder="Ex: Validade de 10 dias. Pagamento de 50% no início e 50% na entrega."></textarea>
                         </div>
                     </section>
                 </div>
 
-                <!-- Lado Direito: Widget de Resumo (Estilo Fatura) -->
-                <aside class="w-96 bg-slate-50 p-10 flex flex-col justify-between">
+                <!-- Lado Direito: Widget de Resumo (Opcional) -->
+                <aside v-if="docForm.type === 'orcamento'" class="w-96 bg-slate-50 p-10 flex flex-col justify-between">
                     <div class="space-y-8">
                         <div class="p-8 bg-white rounded-[32px] shadow-2xl shadow-indigo-100/50 border border-white relative overflow-hidden">
                             <div class="absolute top-0 right-0 p-4 opacity-5">
@@ -1339,17 +1554,25 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                                 </div>
                             </div>
                         </div>
-                        
                     </div>
 
                     <div class="space-y-4 pt-10">
-                        <button @click="saveDocument" class="w-full h-16 bg-slate-900 text-white text-sm font-black rounded-3xl shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all uppercase tracking-widest flex items-center justify-center gap-3" :disabled="savingDoc">
+                        <button type="button" @click="saveDocument" class="w-full h-16 bg-slate-900 text-white text-sm font-black rounded-3xl shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all uppercase tracking-widest flex items-center justify-center gap-3" :disabled="savingDoc">
                             <i v-if="savingDoc" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-                            {{ savingDoc ? 'Sincronizando...' : 'Finalizar e Gerar' }}
+                            {{ savingDoc ? 'Sincronizando...' : 'Finalizar' }}
                         </button>
-                        <button @click="showDocModal=false" class="w-full py-5 text-xs font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest">Descartar Rascunho</button>
+                        <button type="button" @click="closeDocModal" class="w-full py-5 text-xs font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest">Descartar</button>
                     </div>
                 </aside>
+            </div>
+            
+            <!-- Footer Linear para Contratos (Agora fixo na base da flex, sem sobrepor) -->
+            <div v-if="docForm.type !== 'orcamento'" class="p-10 bg-white border-t border-slate-100 flex items-center justify-end gap-6">
+                <button type="button" @click="closeDocModal" class="text-xs font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest">Descartar rascunho</button>
+                <button type="button" @click="saveDocument" class="px-12 h-16 bg-slate-900 text-white text-sm font-black rounded-3xl shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all uppercase tracking-widest flex items-center justify-center gap-3" :disabled="savingDoc">
+                    <i v-if="savingDoc" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                    {{ savingDoc ? 'Salvando...' : 'Finalizar e Gerar Contrato' }}
+                </button>
             </div>
         </div>
     </div>
@@ -1471,6 +1694,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
   createApp({
     setup() {
       const view = ref('dashboard');
+      let quill = null;
       const clients = ref([]);
       const loading = ref(true);
       const search = ref('');
@@ -1490,7 +1714,9 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
       const metrics = ref({ labels: [], data: [], projected_mrr: 0, churn_risk: 0 });
       const commercialStats = ref({ total: 0, accepted: 0, pending: 0, rejected: 0, revenue: 0, opportunity: 0, avg_ticket: 0, conversion_rate: 0 });
       const loadingReports = ref(false);
+      const dreData = ref({ history: [], metrics: { churn_rate: 0, ltv: 0, avg_mrr: 0, active: 0, lost: 0, sales_cycle: 0, recovery_rate: 0 } });
       const showFinanceModal = ref(false);
+      const showAllLogs = ref(false);
       const loadingFinance = ref(false);
       const savingFinance = ref(false);
       const transactions = ref([]);
@@ -1557,8 +1783,9 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
       const loadingDocs = ref(false);
       const savingDoc = ref(false);
       const documents = ref([]);
-      const docForm = ref({ type: 'orcamento', title: '', client_id: '', client_name: '', client_email: '', items: [{description: '', price: 0}], terms: '' });
+      const docForm = ref({ type: 'orcamento', title: '', client_id: '', client_name: '', client_email: '', contact_name: '', items: [{description: '', price: 0}], terms: '', content: '', manual_total: 0 });
       const isNewDocClient = ref(false);
+
 
       const onDocClientSelect = () => {
           const client = clients.value.find(c => c.id == docForm.value.client_id);
@@ -1578,6 +1805,15 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
               return;
           }
           item.price = parseFloat(val) / 100;
+      };
+
+      const handleDocManualTotalInput = (e) => {
+          let val = e.target.value.replace(/\D/g, '');
+          if (val === '') {
+              docForm.value.manual_total = 0;
+              return;
+          }
+          docForm.value.manual_total = parseFloat(val) / 100;
       };
 
       const showTaskModal = ref(false);
@@ -1610,7 +1846,8 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
       const currentPage = ref(1);
       const itemsPerPage = 10;
 
-      const form = ref({ name: '', phone: '', mrr: null });
+      const form = ref({ name: '', phone: '', mrr: null, site_url: '', product: '', notes: '' });
+      const productOptions = ref([]);
 
       // ── MASCARA MONETÁRIA ──
       const displayMRR = computed(() => {
@@ -1811,7 +2048,28 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
       });
       const arpu = computed(() => activeCount.value > 0 ? totalMRR.value / activeCount.value : 0);
 
-      const docFormTotal = computed(() => docForm.value.items.reduce((a,b)=>a+(parseFloat(b.price)||0),0));
+      const docFormTotal = computed(() => {
+          if (docForm.value.type === 'contrato') {
+              return docForm.value.manual_total || 0;
+          }
+          return docForm.value.items.reduce((acc, item) => acc + parseFloat(item.price || 0), 0);
+      });
+
+      const fetchProducts = async () => {
+        const r = await fetch('<?php echo $rest_url; ?>/products', { headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>'} });
+        productOptions.value = await r.json();
+      };
+
+      const fetchDRE = async () => {
+        loadingReports.value = true;
+        try {
+            const r = await fetch('<?php echo $rest_url; ?>/reports/dre', { headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>'} });
+            dreData.value = await r.json();
+            nextTick(renderChart);
+        } finally {
+            loadingReports.value = false;
+        }
+      };
 
       const fetchClients = async () => {
         loading.value = true;
@@ -2082,7 +2340,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                   if (financeForm.value.category === name) {
                       financeForm.value.category = d.categories.length > 0 ? d.categories[0] : '';
                   }
-                  showToast(`Categoria "${name}" excluída.`, 'success', 'FINANCEIRO');
+                  showToast(`Categoria "${name}" excluída!`, 'success', 'FINANCEIRO');
               }
           } catch(e) {
               showToast('Erro ao excluir categoria.', 'error', 'FINANCEIRO');
@@ -2102,8 +2360,9 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
 
       const openDocModal = () => {
           editTarget.value = null;
-          docForm.value = { type: 'orcamento', title: '', client_id: '', client_name: '', client_email: '', items: [{description: '', price: 0}], terms: '' };
+          docForm.value = { type: 'orcamento', title: '', client_id: '', client_name: '', client_email: '', contact_name: '', items: [{description: '', price: 0}], terms: '', content: '', manual_total: 0 };
           showDocModal.value = true;
+          initEditor();
           nextTick(lucide.createIcons);
       };
 
@@ -2116,15 +2375,59 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
               client_name: doc.client_name, 
               client_email: doc.client_email, 
               items: JSON.parse(JSON.stringify(doc.items)), 
-              terms: doc.terms 
+              terms: doc.terms,
+              content: doc.content || '',
+              contact_name: doc.contact_name || ''
           };
           isNewDocClient.value = false;
           showDocModal.value = true;
+          initEditor();
           nextTick(lucide.createIcons);
+      };
+
+      const initEditor = () => {
+          nextTick(() => {
+              if (window.tinymce && tinymce.get('editor-content')) {
+                  tinymce.remove('#editor-content');
+              }
+              if (window.tinymce) {
+                  tinymce.init({
+                      selector: '#editor-content',
+                      menubar: false,
+                      plugins: 'table lists link code advlist autolink autoresize charmap emoticons wordcount',
+                      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | table bullist numlist | link charmap emoticons | code clean',
+                      branding: false,
+                      promotion: false,
+                      content_style: 'body { font-family: Inter, sans-serif; font-size: 15px; color: #1e293b; line-height: 1.8; padding: 20px; } p { margin-bottom: 1.5rem; }',
+                      skin: 'oxide',
+                      min_height: 500,
+                      autoresize_bottom_margin: 50,
+                      setup: (editor) => {
+                          editor.on('init', () => {
+                              editor.setContent(docForm.value.content || '');
+                          });
+                      }
+                  });
+              }
+          });
+      };
+
+      const closeDocModal = () => {
+          if (window.tinymce && tinymce.get('editor-content')) {
+              tinymce.remove('#editor-content');
+          }
+          showDocModal.value = false;
+          editTarget.value = null;
       };
 
       const saveDocument = async () => {
           if(!docForm.value.title || !docForm.value.client_name) return showToast('Preencha título e nome do cliente.', 'error');
+          
+          // Sincroniza conteúdo do TinyMCE
+          if (window.tinymce && tinymce.get('editor-content')) {
+              docForm.value.content = tinymce.get('editor-content').getContent();
+          }
+          
           savingDoc.value = true;
           
           const isEdit = editTarget.value && editTarget.value.type === 'document';
@@ -2139,7 +2442,7 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
               });
               if (r.ok) {
                   const docRes = await r.json();
-                  showDocModal.value = false;
+                   closeDocModal();
                   showToast(isEdit ? 'Documento atualizado!' : 'Documento gerado com sucesso!', 'success', 'VENDAS');
                   
                   // AUTOMAÇÃO: Cria tarefa no Kanban para qualquer novo documento
@@ -2284,6 +2587,12 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                       <h2 style="font-size: 24px; font-weight: 900; color: #1e293b; margin-bottom: 20px; letter-spacing: -1px;">${doc.title}</h2>
                   </div>
 
+                  ${doc.content ? `
+                  <div style="margin-bottom: 40px; font-size: 14px; color: #475569; line-height: 1.8; text-align: justify;">
+                      ${doc.content}
+                  </div>
+                  ` : ''}
+
                   <div class="items-header">
                       <span>Descrição dos Serviços</span>
                       <span>Valor de Investimento</span>
@@ -2325,6 +2634,16 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                   if (document.body.contains(iframe)) document.body.removeChild(iframe);
               }, 1000);
           }, 1000);
+      };
+
+      const copyDocLink = (doc) => {
+          if (!doc.public_url) return;
+          navigator.clipboard.writeText(doc.public_url).then(() => {
+              showToast('Link da proposta copiado!', 'success', 'SISTEMA');
+          }).catch(err => {
+              console.error('Erro ao copiar link:', err);
+              showToast('Erro ao copiar link. Faça manualmente.', 'error');
+          });
       };
 
       const sendDocWhatsApp = async (doc) => {
@@ -2515,15 +2834,17 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
           loadingLogs.value = true;
           loadingReports.value = true;
           try {
-              const [resMetrics, resLogs, resCommercial] = await Promise.all([
+              const [resMetrics, resLogs, resCommercial, resDre] = await Promise.all([
                   fetch('<?php echo $rest_url; ?>/metrics/chart', { headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>'} }).then(r=>r.json()),
                   fetch('<?php echo $rest_url; ?>/logs', { headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>'} }).then(r=>r.json()),
-                  fetch('<?php echo $rest_url; ?>/metrics/commercial', { headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>'} }).then(r=>r.json())
+                  fetch('<?php echo $rest_url; ?>/metrics/commercial', { headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>'} }).then(r=>r.json()),
+                  fetch('<?php echo $rest_url; ?>/reports/dre', { headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>'} }).then(r=>r.json())
               ]);
               
               metrics.value = resMetrics;
               logs.value = resLogs;
               commercialStats.value = resCommercial;
+              dreData.value = resDre; // Assuming dreData is a ref
               
               if(view.value === 'finance') {
                   fetchTransactions();
@@ -2539,50 +2860,94 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
 
       const renderChart = () => {
           if(view.value !== 'reports') return;
-          const ctx = document.getElementById('mrrChart');
-          if(!ctx) return;
           
-          if(chartInstance) chartInstance.destroy();
-          
-          chartInstance = new Chart(ctx, {
-              type: 'line',
-              data: {
-                  labels: metrics.value.labels,
-                  datasets: [{
-                      label: 'Evolução MRR',
-                      data: metrics.value.data,
-                      borderColor: '#4f46e5',
-                      backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                      borderWidth: 4,
-                      fill: true,
-                      tension: 0.4,
-                      pointBackgroundColor: '#ffffff',
-                      pointBorderColor: '#4f46e5',
-                      pointBorderWidth: 2,
-                      pointRadius: 4
-                  }]
-              },
-              options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: { legend: { display: false } },
-                  scales: {
-                      y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { dash: [4, 4] } },
-                      x: { grid: { display: false } }
+          // MRR CHART
+          const mrrCtx = document.getElementById('mrrChart');
+          if(mrrCtx) {
+              if(chartInstance) chartInstance.destroy();
+              chartInstance = new Chart(mrrCtx, {
+                  type: 'line',
+                  data: {
+                      labels: metrics.value.labels,
+                      datasets: [{
+                          label: 'Evolução MRR',
+                          data: metrics.value.data,
+                          borderColor: '#4f46e5',
+                          backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                          borderWidth: 4,
+                          fill: true,
+                          tension: 0.4,
+                          pointBackgroundColor: '#ffffff',
+                          pointBorderColor: '#4f46e5',
+                          pointBorderWidth: 2,
+                          pointRadius: 4
+                      }]
+                  },
+                  options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: { legend: { display: false } },
+                      scales: {
+                          y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { dash: [4, 4] } },
+                          x: { grid: { display: false } }
+                      }
                   }
-              }
-          });
+              });
+          }
+
+          // DRE CHART
+          const dreCtx = document.getElementById('dreChart');
+          if(dreCtx) {
+              if (financeChartInstance) financeChartInstance.destroy();
+              financeChartInstance = new Chart(dreCtx, {
+                  type: 'bar',
+                  data: {
+                      labels: (dreData.value.history || []).map(m => m.month),
+                      datasets: [
+                          {
+                              label: 'Receitas',
+                              data: (dreData.value.history || []).map(m => m.income),
+                              backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                              borderRadius: 8
+                          },
+                          {
+                              label: 'Despesas',
+                              data: (dreData.value.history || []).map(m => m.expense),
+                              backgroundColor: 'rgba(244, 63, 94, 0.6)',
+                              borderRadius: 8
+                          }
+                      ]
+                  },
+                  options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: { legend: { display: false } },
+                      scales: {
+                          y: { beginAtZero: true, grid: { borderDash: [5,5], drawBorder: false } },
+                          x: { grid: { display: false } }
+                      }
+                  }
+              });
+          }
       };
 
       const openLeadModal = () => {
         editTarget.value = null;
-        form.value = { name: '', phone: '', mrr: null, site_url: '', product: '' };
+        form.value = { name: '', phone: '', mrr: null, site_url: '', product: '', notes: '' };
         showModal.value = true;
       };
 
       const openEditModal = (c) => {
+        if (!c) return openLeadModal();
         editTarget.value = c;
-        form.value = { name: c.name, phone: c.phone || "", mrr: parseFloat(c.mrr || 0), site_url: c.site_url || "", product: c.product || "" };
+        form.value = { 
+            name: c.name, 
+            phone: c.phone || "", 
+            mrr: parseFloat(c.mrr || 0), 
+            site_url: c.site_url || "", 
+            product: c.product || "",
+            notes: c.notes || ""
+        };
         showModal.value = true;
       };
 
@@ -2604,10 +2969,27 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
                 const idx = clients.value.findIndex(x => x.id === d.id);
                 if(idx !== -1) clients.value[idx] = d;
             } else {
-                clients.value.push(d);             }
+                clients.value.push(d);
+            }
+
+            // Se o produto é novo, salva na lista global
+            if (form.value.product && !productOptions.value.includes(form.value.product)) {
+                productOptions.value.push(form.value.product);
+                fetch('<?php echo $rest_url; ?>/products', {
+                    method: 'POST',
+                    headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>', 'Content-Type': 'application/json'},
+                    body: JSON.stringify({ products: productOptions.value })
+                });
+            }
+
             showModal.value = false; 
-            form.value = { name:'', phone:'', mrr:null, site_url:'', product:'' }; 
+            form.value = { name:'', phone:'', mrr:null, site_url:'', product:'', notes:'' }; 
             showToast(isUpdate ? 'Dados atualizados!' : 'Novo registro criado.');
+            fetchDocuments();
+            fetchTasks();
+            fetchLogsAndMetrics(); // Assuming fetchFinanceStats is part of this or needs to be called separately
+            fetchProducts();
+            nextTick(lucide.createIcons);
           }
         } finally {
           saving.value = false;
@@ -2803,6 +3185,26 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
           }
       };
 
+      const exportToCSV = (data, filename, headers) => {
+          let csv = headers.join(',') + '\n';
+          data.forEach(row => {
+              csv += headers.map(h => {
+                  let val = row[h] || '';
+                  if (typeof val === 'string') val = val.replace(/"/g, '""');
+                  return `"${val}"`;
+              }).join(',') + '\n';
+          });
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", filename);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+      };
+
       const mrrAtivo = computed(() => {
           return clients.value.filter(c => c.status === 'ativo').reduce((acc, c) => acc + parseFloat(c.mrr || 0), 0);
       });
@@ -2847,6 +3249,8 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
         fetchTransactions(); // Sempre busca para alimentar o Snapshot no Dashboard
         fetchDocuments();     // Alimenta o card de Pipeline no Dashboard
         fetchLogsAndMetrics(); // Alimenta os indicadores de desempenho comercial
+        fetchProducts();
+        fetchDRE();
       });
 
       watch([view, showModal, showInvoicesModal, deleteTarget, filterStatus, syncingStatus, crmTab, filteredClients, crmClients, showFinanceModal, showDocModal, showTaskModal], () => {
@@ -2874,9 +3278,10 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
 
       return { view, clients, loading, search, filterStatus, showModal, showInvoicesModal, invoices, loadingInvoices, asaasBalance, loadingBalance, importing, massBilling, syncingStatus, saving, logs, loadingLogs, metrics, loadingReports, deleteTarget, editTarget, asaasOk, waOk, settingsUrl, form, filteredClients, crmClients, totalMRR, activeCount, overdueCount, fetchClients, fetchDashboardStats, fetchLogsAndMetrics, importGateway, massBillOverdue, syncOverduesSilently, saveClient, executeDelete, formatMoney, sendWhatsApp, toggleBlock, syncAsaas, openInvoicesModal, displayMRR, handleMRRInput, displayPhone, handlePhoneInput, formatPhone, openEditModal, openLeadModal, crmTab, crmColumns, getPipelineStage, onDragStart, onDrop, getWaLink, moveStageByArrow, mrrAtivo, mrrRisco, pipelineBreakdown, productBreakdown, currentPage, totalPages, totalFiltered, itemsPerPage,
                showFinanceModal, loadingFinance, savingFinance, transactions, financeForm, financeCategories, newCategoryInput, addingCategory, managingCategories, categoryDeleteConfirm, savingCategory, addFinanceCategory, deleteFinanceCategory, saveTransaction, openFinanceEditModal, handleDeleteTransaction, displayFinanceAmount, handleFinanceAmountInput, totalIncomes, totalPendingIncomes, totalExpenses, totalPendingExpenses, profitMargin, projectedEndBalance, topExpenseCategory, arpu, financeHistoryTab, filteredTransactions, financeDateStart, financeDateEnd, financeStatusFilter, setFinancePeriod, financePeriod, isOverdue, markAsPaid, printFinanceReport, siteLogo,
-               showDocModal, loadingDocs, savingDoc, documents, docForm, docFormTotal, openDocModal, openDocEditModal, saveDocument, handleDeleteDoc, acceptDocument, revertDocument, printProposal, sendDocWhatsApp, isNewDocClient, onDocClientSelect, handleDocItemPriceInput,
+               showDocModal, loadingDocs, savingDoc, documents, docForm, docFormTotal, openDocModal, openDocEditModal, saveDocument, closeDocModal, handleDeleteDoc, acceptDocument, revertDocument,
                showTaskModal, loadingTasks, savingTask, tasks, taskForm, taskColumns, openTaskModal, openTaskEditModal, saveTask, onDragTask, onDropTask, handleDeleteTask,
-               toasts, showToast, commercialStats, gatewayLabel, importGateway
+               productOptions, fetchProducts, dreData, fetchDRE, showAllLogs, exportToCSV,
+               toasts, showToast, commercialStats, gatewayLabel, importGateway, printProposal, sendDocWhatsApp, copyDocLink, isNewDocClient, onDocClientSelect, handleDocItemPriceInput, handleDocManualTotalInput
       };
     }
   }).mount('#acro-app');
