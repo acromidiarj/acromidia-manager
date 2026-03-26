@@ -87,7 +87,7 @@ class Acromidia_Asaas_API implements Acromidia_Gateway_Interface {
     }
 
     public function list_payments( $customer_id, $status = '' ) {
-        $url = '/payments?customer=' . $customer_id;
+        $url = '/payments?customer=' . $customer_id . '&limit=100';
         if ( ! empty( $status ) ) {
             $url .= '&status=' . $status;
         }

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AcroManager
  * Description: Sistema completo de gestão de assinaturas, integração gateways de pagamementoe notificações WhatsApp.
- * Version: 4.0.6
+ * Version: 4.0.7
  * Author: Acromidia - Alailson Nascimento
  * Text Domain: acromidia-manager
  */
@@ -878,6 +878,8 @@ class Acromidia_Manager
         }
 
         $asaas_id = get_post_meta($id, '_acro_gateway_customer_id', true);
+        error_log("AcroManager Debug - Buscando faturas. WP ID: $id, Asaas ID: $asaas_id");
+        
         if (empty($asaas_id)) {
             return rest_ensure_response(['data' => []]);
         }
@@ -885,6 +887,8 @@ class Acromidia_Manager
         $gateway = Acromidia_Gateway_Factory::get_engine();
         $invoices = $gateway->list_payments($asaas_id);
         
+        error_log("AcroManager Debug - Resposta Invoices: " . (isset($invoices['data']) ? count($invoices['data']) . " faturas" : "Erro ou Vazio"));
+
         if (isset($invoices['error']) && $invoices['error']) {
             return new \WP_REST_Response(['error' => 'Erro na API Asaas'], 400);
         }
