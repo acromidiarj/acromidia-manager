@@ -42,6 +42,10 @@ class Acromidia_Asaas_API implements Acromidia_Gateway_Interface {
             return [ 'error' => true, 'message' => "Erro HTTP $response_code", 'raw' => $body ];
         }
 
+        if (strpos($endpoint, '/customers') !== false) {
+            error_log("AcroManager Debug - /customers response: " . substr($body, 0, 500));
+        }
+
         return $data;
     }
 

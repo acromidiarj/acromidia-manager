@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AcroManager
  * Description: Sistema completo de gestão de assinaturas, integração gateways de pagamementoe notificações WhatsApp.
- * Version: 4.0.5
+ * Version: 4.0.6
  * Author: Acromidia - Alailson Nascimento
  * Text Domain: acromidia-manager
  */
@@ -89,10 +89,10 @@ class Acromidia_Manager
 
         register_post_type('acro_client', [
             'labels' => $labels,
-            'public' => false,
+            'public' => true,
             'publicly_queryable' => false,
-            'show_ui' => false,
-            'show_in_menu' => false,
+            'show_ui' => true,
+            'show_in_menu' => true,
             'query_var' => true,
             'capability_type' => 'post',
             'has_archive' => false,
@@ -878,7 +878,10 @@ class Acromidia_Manager
         }
 
         $asaas_id = get_post_meta($id, '_acro_gateway_customer_id', true);
-        
+        if (empty($asaas_id)) {
+            return rest_ensure_response(['data' => []]);
+        }
+
         $gateway = Acromidia_Gateway_Factory::get_engine();
         $invoices = $gateway->list_payments($asaas_id);
         
@@ -922,6 +925,8 @@ class Acromidia_Manager
         $primary_id = Acromidia_Settings::get('primary_gateway') ?: 'asaas';
         $customers = $gateway->list_customers(100);
 
+        error_log("AcroManager Debug - Importando do Asaas. Resposta bruta: " . (is_array($customers) ? count($customers['data'] ?? []) . " clientes encontrados" : "Erro na resposta"));
+
         if (isset($customers['error']) && $customers['error']) {
             return new \WP_REST_Response(['error' => 'Erro ao buscar no ' . ucfirst($primary_id) . ': ' . ($customers['message'] ?? '')], 400);
         }
@@ -930,7 +935,7 @@ class Acromidia_Manager
         $existing = get_posts([
             'post_type' => 'acro_client',
             'posts_per_page' => -1,
-            'post_status' => 'publish',
+            'post_status' => ['publish', 'draft', 'pending', 'private'], // Abranger tudo
         ]);
 
         $existing_asaas_ids = [];
@@ -962,9 +967,8 @@ class Acromidia_Manager
                 $asaas_id = trim($c['id']);
                 update_post_meta($post_id, '_acro_gateway_customer_id', $asaas_id);
 
-                // --- NOVO: Garante que o status seja sincronizado no ato da importação ---
-                $status = $this->get_client_status_from_gateway($asaas_id);
-                update_post_meta($post_id, '_acro_status', $status);
+                // Otimizado: Não buscar status individualmente no loop de importação (evita timeout na GoDaddy)
+                update_post_meta($post_id, '_acro_status', 'ativo');
 
                 update_post_meta($post_id, '_acro_cpf_cnpj', sanitize_text_field($c['cpfCnpj'] ?? ''));
                 update_post_meta($post_id, '_acro_email', sanitize_email($c['email'] ?? ''));

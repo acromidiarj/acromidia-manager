@@ -2115,8 +2115,16 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
 
       const importGateway = async () => {
         importing.value = true;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
         try {
-          const r = await fetch('<?php echo $rest_url; ?>/asaas/import', { method: 'POST', headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>'} });
+          const r = await fetch('<?php echo $rest_url; ?>/asaas/import', { 
+            method: 'POST', 
+            headers: {'X-WP-Nonce': '<?php echo $rest_nonce; ?>'},
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
           const d = await r.json();
           if(d.success) {
             let msg = `Sincronização concluída: ${d.imported} novos vínculos estabelecidos.`;
@@ -2127,6 +2135,9 @@ html, body, #wpwrap, #wpbody, #wpbody-content, #wpfooter {
           } else {
             showToast('Falha na importação: ' + (d.error||'Desconhecida'), 'error', gatewayLabel.value.toUpperCase());
           }
+        } catch (err) {
+          console.error('Erro na importação Asaas:', err);
+          showToast('Erro de conexão ou timeout na GoDaddy.', 'error', 'SISTEMA');
         } finally {
           importing.value = false;
         }
