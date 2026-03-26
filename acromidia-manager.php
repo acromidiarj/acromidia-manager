@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Acromidia Manager
  * Description: Sistema completo de gestão de assinaturas, integração Asaas e notificações WhatsApp.
- * Version: 4.0.3
+ * Version: 4.0.4
  * Author: Especialista IA
  * Text Domain: acromidia-manager
  */
@@ -2056,6 +2056,24 @@ class Acromidia_Manager {
         }
 
         return $slug;
+    }
+
+    /**
+     * Busca o status real do cliente no gateway (Asaas) verificando se há pagamentos vencidos.
+     */
+    private function get_client_status_from_gateway( $asaas_id ) {
+        if ( ! Acromidia_Gateway_Factory::is_configured() ) {
+            return 'ativo';
+        }
+
+        $gateway = Acromidia_Gateway_Factory::get_engine();
+        $payments = $gateway->list_payments( $asaas_id, 'OVERDUE' );
+
+        if ( ! empty( $payments['data'] ) && count( $payments['data'] ) > 0 ) {
+            return 'inadimplente';
+        }
+
+        return 'ativo';
     }
 }
 

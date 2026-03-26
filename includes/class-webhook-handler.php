@@ -13,12 +13,18 @@ class Acromidia_Webhook_Handler {
         // Log para debug (remover em produção estável)
         error_log( '[Acromidia Webhook] Evento recebido: ' . wp_json_encode( $body ) );
 
-        if ( empty( $body['event'] ) || empty( $body['payment'] ) ) {
-            return new \WP_REST_Response( [ 'error' => 'Payload inválido' ], 400 );
+        if ( empty( $body['event'] ) ) {
+            return new \WP_REST_Response( [ 'error' => 'Evento ausente' ], 400 );
         }
 
         $event   = sanitize_text_field( $body['event'] );
-        $payment = $body['payment'];
+        $payment = $body['payment'] ?? null;
+
+        // Se o evento não possui dados de pagamento, ignoramos com sucesso (evita erro 400 no gateway)
+        if ( ! $payment ) {
+            error_log( "[Acromidia Webhook] Evento genérico recebido e ignorado: {$event}" );
+            return new \WP_REST_Response( [ 'message' => 'Evento recebido e ignorado (sem dados de pagamento)' ], 200 );
+        }
 
         // Identificar o cliente pelo customer ID do Asaas
         $customer_id = sanitize_text_field( $payment['customer'] ?? '' );
